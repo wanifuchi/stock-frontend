@@ -28,6 +28,8 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
   const [showProgressIndicator, setShowProgressIndicator] = useState(false);
+  const [analysisProgress, setAnalysisProgress] = useState(0);
+  const [currentAnalysisStep, setCurrentAnalysisStep] = useState('');
 
   // デバッグ用：API URLを確認
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -38,6 +40,8 @@ export default function Home() {
     setShowProgressIndicator(true);
     setIsLoading(true);
     setError('');
+    setAnalysisProgress(0);
+    setCurrentAnalysisStep('fetch-data');
     
     // 既存データをクリア
     setStockInfo(null);
@@ -46,12 +50,14 @@ export default function Home() {
     setStockAnalysis(null);
 
     try {
-      // Alpha Vantageのレート制限を考慮して順次実行
-      // まず基本情報を取得
+      // ステップ1: 基本情報を取得
+      setCurrentAnalysisStep('fetch-data');
       const info = await stockAPI.getStockInfo(symbol);
       setStockInfo(info);
+      setAnalysisProgress(25);
       
-      // 価格履歴とテクニカル指標を並行取得
+      // ステップ2: テクニカル分析
+      setCurrentAnalysisStep('technical-analysis');
       const [history, indicators] = await Promise.all([
         stockAPI.getPriceHistory(symbol, '3mo'),
         stockAPI.getTechnicalIndicators(symbol),
@@ -59,21 +65,29 @@ export default function Home() {
       
       setPriceHistory(history);
       setTechnicalIndicators(indicators);
+      setAnalysisProgress(50);
       
-      // 最後に分析を取得（他のデータが揃ってから）
+      // ステップ3: AI分析実行
+      setCurrentAnalysisStep('ai-analysis');
+      setAnalysisProgress(75);
+      
+      // ステップ4: 最終分析結果を取得
+      setCurrentAnalysisStep('generate-recommendation');
       const analysis = await stockAPI.getStockAnalysis(symbol);
       setStockAnalysis(analysis);
+      setAnalysisProgress(100);
       
-      // データ取得完了後、少し待ってからインジケータを非表示
+      // 完了後、短時間で非表示
       setTimeout(() => {
         setShowProgressIndicator(false);
-      }, 500);
+      }, 300);
       
     } catch (err) {
       console.error('データ取得エラー:', err);
       const errorMessage = err instanceof Error ? err.message : 'データの取得に失敗しました。';
       setError(`エラー: ${errorMessage} (API URL: ${apiUrl})`);
       setShowProgressIndicator(false);
+      setAnalysisProgress(0);
     } finally {
       setIsLoading(false);
     }
@@ -143,7 +157,30 @@ export default function Home() {
             <AnalysisProgressIndicator 
               symbol={selectedSymbol}
               onComplete={() => setShowProgressIndicator(false)}
+              externalProgress={analysisProgress}
+              externalCurrentStep={currentAnalysisStep}
             />
+          </div>
+        )}
+
+        {/* 中間結果の先行表示（インジケータ表示中でも部分結果を表示） */}
+        {selectedSymbol && !isLoading && showProgressIndicator && (stockInfo || technicalIndicators) && (
+          <div className="space-y-6 opacity-70">
+            <div className="text-center mb-4">
+              <p className="text-sm text-muted-foreground">
+                📊 分析中に取得済みデータを先行表示
+              </p>
+            </div>
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              <div className="xl:col-span-2 space-y-6">
+                {stockInfo && <StockInfo stockInfo={stockInfo} />}
+              </div>
+              <div className="space-y-6">
+                {technicalIndicators && (
+                  <TechnicalIndicators indicators={technicalIndicators} />
+                )}
+              </div>
+            </div>
           </div>
         )}
 

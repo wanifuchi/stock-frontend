@@ -17,11 +17,15 @@ interface AnalysisStep {
 interface AnalysisProgressIndicatorProps {
   symbol: string;
   onComplete?: () => void;
+  externalProgress?: number; // 外部から制御される進行状況（0-100）
+  externalCurrentStep?: string; // 外部から制御される現在のステップID
 }
 
 export const AnalysisProgressIndicator: React.FC<AnalysisProgressIndicatorProps> = ({ 
   symbol, 
-  onComplete 
+  onComplete,
+  externalProgress,
+  externalCurrentStep
 }) => {
   const [currentStep, setCurrentStep] = useState(0);
   const [elapsedTime, setElapsedTime] = useState(0);
@@ -68,8 +72,41 @@ export const AnalysisProgressIndicator: React.FC<AnalysisProgressIndicatorProps>
     return () => clearInterval(timer);
   }, []);
 
-  // ステップ進行の自動化
+  // 外部進行状況に基づくステップ更新
   useEffect(() => {
+    if (externalProgress !== undefined && externalCurrentStep) {
+      const stepIndex = steps.findIndex(step => step.id === externalCurrentStep);
+      if (stepIndex !== -1 && stepIndex !== currentStep) {
+        setCurrentStep(stepIndex);
+        
+        // ステップ状態を更新
+        setSteps(prev => prev.map((step, index) => {
+          if (index < stepIndex) {
+            return { ...step, status: 'completed' };
+          } else if (index === stepIndex) {
+            return { ...step, status: 'running' };
+          } else {
+            return { ...step, status: 'pending' };
+          }
+        }));
+      }
+      
+      // 100%完了時
+      if (externalProgress >= 100) {
+        setSteps(prev => prev.map(step => ({ ...step, status: 'completed' })));
+        setTimeout(() => {
+          onComplete?.();
+        }, 300);
+      }
+    }
+  }, [externalProgress, externalCurrentStep, steps, currentStep, onComplete]);
+
+  // ステップ進行の自動化（外部制御がない場合のみ）
+  useEffect(() => {
+    if (externalProgress !== undefined) {
+      return; // 外部制御の場合は自動進行しない
+    }
+    
     let stepTimer: NodeJS.Timeout;
     
     if (currentStep < steps.length) {
@@ -100,12 +137,14 @@ export const AnalysisProgressIndicator: React.FC<AnalysisProgressIndicatorProps>
     return () => {
       if (stepTimer) clearTimeout(stepTimer);
     };
-  }, [currentStep, steps, onComplete]);
+  }, [currentStep, steps, onComplete, externalProgress]);
 
-  // 進行状況のパーセンテージ計算
-  const progressPercentage = currentStep < steps.length 
-    ? (currentStep / steps.length) * 100 + (elapsedTime / steps[currentStep]?.estimatedTime || 0) * (100 / steps.length)
-    : 100;
+  // 進行状況のパーセンテージ計算（外部制御優先、100%を超えないよう制限）
+  const progressPercentage = externalProgress !== undefined 
+    ? Math.min(100, Math.max(0, externalProgress))
+    : currentStep < steps.length 
+      ? (currentStep / steps.length) * 100 + Math.min(1, (elapsedTime / (steps[currentStep]?.estimatedTime || 1))) * (100 / steps.length)
+      : 100;
 
   // 残り時間の推定
   const remainingTime = Math.max(0, totalEstimatedTime - elapsedTime);
