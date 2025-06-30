@@ -92,9 +92,9 @@ export default function Home() {
         <div className="container max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-24">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl lg:text-6xl font-light tracking-tight mb-6">
-              賢明な
+              次世代の
               <span className="block font-medium bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                投資判断を
+                投資分析
               </span>
             </h2>
             <p className="text-lg text-muted-foreground mb-12 leading-relaxed">

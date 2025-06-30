@@ -19,6 +19,24 @@ interface StockChartProps {
 }
 
 export const StockChart: React.FC<StockChartProps> = ({ priceHistory }) => {
+  // データなしの場合の処理
+  if (!priceHistory.dates.length || !priceHistory.prices.length) {
+    return (
+      <div className="bg-white rounded-lg shadow-md p-8">
+        <div className="text-center">
+          <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-4">
+            <LineChart className="h-8 w-8 text-gray-400" />
+          </div>
+          <h3 className="text-lg font-medium text-gray-900 mb-2">チャートデータなし</h3>
+          <p className="text-gray-500">
+            この銘柄の価格履歴データは現在利用できません。<br />
+            しばらくしてから再度お試しください。
+          </p>
+        </div>
+      </div>
+    );
+  }
+
   // データを recharts 用に変換
   const chartData = priceHistory.dates.map((date, index) => ({
     date,
