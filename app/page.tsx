@@ -15,7 +15,7 @@ import {
 } from '@/lib/api';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Loader2, TrendingUp, BarChart3, Brain } from 'lucide-react';
+import { TrendingUp, BarChart3, Brain } from 'lucide-react';
 
 export default function Home() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>('');
