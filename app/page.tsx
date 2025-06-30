@@ -63,17 +63,20 @@ export default function Home() {
       // 最後に分析を取得（他のデータが揃ってから）
       const analysis = await stockAPI.getStockAnalysis(symbol);
       setStockAnalysis(analysis);
+      
+      // データ取得完了後、少し待ってからインジケータを非表示
+      setTimeout(() => {
+        setShowProgressIndicator(false);
+      }, 500);
+      
     } catch (err) {
       console.error('データ取得エラー:', err);
       const errorMessage = err instanceof Error ? err.message : 'データの取得に失敗しました。';
       setError(`エラー: ${errorMessage} (API URL: ${apiUrl})`);
+      setShowProgressIndicator(false);
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const handleAnalysisComplete = () => {
-    setShowProgressIndicator(false);
   };
 
   return (
@@ -135,17 +138,17 @@ export default function Home() {
         )}
 
         {/* 高度な分析進行インジケータ */}
-        {showProgressIndicator && isLoading && (
+        {showProgressIndicator && (
           <div className="py-12">
             <AnalysisProgressIndicator 
               symbol={selectedSymbol}
-              onComplete={handleAnalysisComplete}
+              onComplete={() => setShowProgressIndicator(false)}
             />
           </div>
         )}
 
         {/* モダンな株式データ表示 */}
-        {selectedSymbol && !isLoading && (
+        {selectedSymbol && !isLoading && !showProgressIndicator && (
           <div className="space-y-8">
             {/* グリッドレイアウト - デスクトップで最適化 */}
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
@@ -184,7 +187,7 @@ export default function Home() {
         )}
 
         {/* AIチャット機能 */}
-        {selectedSymbol && !isLoading && stockAnalysis && (
+        {selectedSymbol && !isLoading && !showProgressIndicator && stockAnalysis && (
           <AIChat 
             stockSymbol={selectedSymbol}
             analysisData={{
