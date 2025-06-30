@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Loader2 } from 'lucide-react';
 import { stockAPI, StockSearchResult } from '@/lib/api';
 import { Input } from '@/components/ui/input';
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
+import { useDebounce } from '@/hooks/useDebounce';
 
 interface StockSearchProps {
   onSelectStock: (symbol: string) => void;
@@ -18,6 +19,37 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
   const [results, setResults] = useState<StockSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  
+  // Geminiの提案：debounce機能でリアルタイム検索
+  const debouncedQuery = useDebounce(query, 300);
+
+  // リアルタイム検索のためのuseEffect
+  useEffect(() => {
+    const performSearch = async () => {
+      if (!debouncedQuery.trim()) {
+        setResults([]);
+        setShowDropdown(false);
+        return;
+      }
+
+      if (debouncedQuery.length < 2) return; // 最低2文字で検索
+
+      setIsLoading(true);
+      try {
+        const data = await stockAPI.searchStocks(debouncedQuery);
+        setResults(data.results);
+        setShowDropdown(data.results.length > 0);
+      } catch (error) {
+        console.error('リアルタイム検索エラー:', error);
+        setResults([]);
+        setShowDropdown(false);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    performSearch();
+  }, [debouncedQuery]);
 
   const handleSearch = async () => {
     if (!query.trim()) return;
@@ -47,6 +79,18 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
     setQuery(symbol);
   };
 
+  // 外部クリックでドロップダウンを閉じる
+  const handleInputBlur = () => {
+    // 少し遅延させてクリックイベントを先に処理
+    setTimeout(() => setShowDropdown(false), 150);
+  };
+
+  const handleInputFocus = () => {
+    if (results.length > 0) {
+      setShowDropdown(true);
+    }
+  };
+
   return (
     <div className="relative w-full">
       <div className="group relative">
@@ -58,6 +102,8 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyPress={handleKeyPress}
+          onBlur={handleInputBlur}
+          onFocus={handleInputFocus}
           placeholder="銘柄コード、ETF、企業名を検索..."
           className={cn(
             "pl-12 h-12 text-base bg-background/50 border-border/50",
