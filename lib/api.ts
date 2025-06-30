@@ -77,7 +77,47 @@ export interface StockAnalysis {
     reasoning: string[];
   };
   timestamp: string;
-  advanced_trading?: any; // 高度な売買分析データ
+  advanced_trading?: {
+    market_environment?: {
+      type: string;
+      direction: string;
+      adx: number;
+      strength: number;
+    };
+    trading_signals?: {
+      primary_signal: string;
+      confidence: number;
+      entry_signals: Array<{
+        type: string;
+        reason: string;
+        strength: number;
+      }>;
+      exit_signals: Array<{
+        type: string;
+        reason: string;
+        strength: number;
+      }>;
+    };
+    risk_reward_targets?: {
+      entry_price: number;
+      stop_loss: number;
+      take_profit_1: number;
+      take_profit_2: number;
+      take_profit_3: number;
+      risk_reward_ratio: number;
+      position_size_suggestion: number;
+    };
+    support_resistance?: {
+      nearest_support: number | null;
+      nearest_resistance: number | null;
+      pivot_points: {
+        pivot: number;
+        r1: number;
+        s1: number;
+      };
+    };
+    action_plan?: string[];
+  };
 }
 
 // API関数

@@ -212,7 +212,6 @@ export default function Home() {
                 <TradingSignals tradingData={stockAnalysis.advanced_trading} />
               </div>
             )}
-            </div>
           </div>
         )}
 
