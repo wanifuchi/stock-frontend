@@ -3,7 +3,16 @@
  */
 import axios from 'axios';
 
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const getApiBaseUrl = () => {
+  const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  // プロトコルが指定されていない場合はhttpsを追加
+  if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
+    return `https://${url}`;
+  }
+  return url;
+};
+
+const API_BASE_URL = getApiBaseUrl();
 
 // APIクライアントのインスタンス作成
 const apiClient = axios.create({
