@@ -1,36 +1,50 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Stock Frontend - 次世代投資分析プラットフォーム
 
-## Getting Started
+## 🚀 概要
+AI駆動の次世代株式分析プラットフォームのフロントエンドアプリケーション。リアルタイムで正確な投資分析を提供します。
 
-First, run the development server:
+## ✨ 主な機能
+- **強化分析エンジン**: 銘柄ごとに多様で現実的な分析結果
+- **リアルタイム進行インジケータ**: API進行と完全同期
+- **AIチャット機能**: 分析結果に関する質問に即座に回答
+- **高速銘柄検索**: デバウンス機能付きのインテリジェント検索
+- **美しいUI/UX**: shadcn/ui + Tailwind CSS v4
 
+## 🛠️ 技術スタック
+- Next.js 15.3.4
+- TypeScript
+- Tailwind CSS v4
+- shadcn/ui
+- React 19
+
+## 📦 インストール
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🚀 開発サーバー起動
+```bash
+npm run dev
+```
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+[http://localhost:3000](http://localhost:3000) でアプリケーションにアクセス
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🌐 環境変数
+`.env.local`ファイルを作成:
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
 
-## Learn More
+本番環境では適切なバックエンドURLを設定してください。
 
-To learn more about Next.js, take a look at the following resources:
+## 📅 最終更新
+- 2025-06-30: UIバグ修正（AIチャット透過問題、再検索時の表示問題）
+- 2025-06-30: 進行状況インジケータの大幅改善
+- 2025-06-30: 強化分析エンジン統合
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 🚀 デプロイ
+Vercelへの自動デプロイ対応済み。GitHubにプッシュすると自動的にビルド・デプロイされます。
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+---
 
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Created with ❤️ by Stock Advisor Team
