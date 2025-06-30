@@ -17,7 +17,7 @@ const API_BASE_URL = getApiBaseUrl();
 // APIクライアントのインスタンス作成
 const apiClient = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 30000,
+  timeout: 60000, // 60秒に延長（Alpha Vantageのレート制限対応）
   headers: {
     'Content-Type': 'application/json',
   },

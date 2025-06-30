@@ -34,17 +34,22 @@ export default function Home() {
     setError('');
 
     try {
-      // 並行して複数のAPIを呼び出し
-      const [info, history, indicators, analysis] = await Promise.all([
-        stockAPI.getStockInfo(symbol),
+      // Alpha Vantageのレート制限を考慮して順次実行
+      // まず基本情報を取得
+      const info = await stockAPI.getStockInfo(symbol);
+      setStockInfo(info);
+      
+      // 価格履歴とテクニカル指標を並行取得
+      const [history, indicators] = await Promise.all([
         stockAPI.getPriceHistory(symbol, '3mo'),
         stockAPI.getTechnicalIndicators(symbol),
-        stockAPI.getStockAnalysis(symbol),
       ]);
-
-      setStockInfo(info);
+      
       setPriceHistory(history);
       setTechnicalIndicators(indicators);
+      
+      // 最後に分析を取得（他のデータが揃ってから）
+      const analysis = await stockAPI.getStockAnalysis(symbol);
       setStockAnalysis(analysis);
     } catch (err) {
       console.error('データ取得エラー:', err);
