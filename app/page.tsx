@@ -6,6 +6,8 @@ import { StockInfo } from '@/components/StockInfo';
 import { StockChart } from '@/components/StockChart';
 import { TechnicalIndicators } from '@/components/TechnicalIndicators';
 import { StockAnalysis } from '@/components/StockAnalysis';
+import { AnalysisProgressIndicator } from '@/components/AnalysisProgressIndicator';
+import { AIChat } from '@/components/AIChat';
 import { 
   stockAPI, 
   StockInfo as StockInfoType, 
@@ -25,6 +27,7 @@ export default function Home() {
   const [stockAnalysis, setStockAnalysis] = useState<StockAnalysisType | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const [showProgressIndicator, setShowProgressIndicator] = useState(false);
 
   // デバッグ用：API URLを確認
   const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -32,8 +35,15 @@ export default function Home() {
 
   const handleSelectStock = async (symbol: string) => {
     setSelectedSymbol(symbol);
+    setShowProgressIndicator(true);
     setIsLoading(true);
     setError('');
+    
+    // 既存データをクリア
+    setStockInfo(null);
+    setPriceHistory(null);
+    setTechnicalIndicators(null);
+    setStockAnalysis(null);
 
     try {
       // Alpha Vantageのレート制限を考慮して順次実行
@@ -60,6 +70,10 @@ export default function Home() {
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleAnalysisComplete = () => {
+    setShowProgressIndicator(false);
   };
 
   return (
@@ -92,10 +106,7 @@ export default function Home() {
         <div className="container max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-24">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl lg:text-6xl font-light tracking-tight mb-6">
-              次世代の
-              <span className="block font-medium bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-600 bg-clip-text text-transparent gradient-text-fallback">
-                投資分析
-              </span>
+              次世代の<span className="font-medium bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-600 bg-clip-text text-transparent gradient-text-fallback">投資分析</span>
             </h2>
             <p className="text-lg text-muted-foreground mb-12 leading-relaxed">
               テクニカル指標、市場センチメント、機関投資家ロジックを組み合わせた高度なAI分析により、精密な売買推奨を提供します。
@@ -123,16 +134,13 @@ export default function Home() {
           </Card>
         )}
 
-        {/* エレガントなローディング */}
-        {isLoading && (
-          <div className="flex flex-col items-center justify-center py-24">
-            <div className="relative">
-              <div className="h-12 w-12 rounded-full border-2 border-muted"></div>
-              <div className="absolute top-0 left-0 h-12 w-12 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
-            </div>
-            <p className="mt-6 text-sm text-muted-foreground font-medium">
-              市場データを分析中...
-            </p>
+        {/* 高度な分析進行インジケータ */}
+        {showProgressIndicator && isLoading && (
+          <div className="py-12">
+            <AnalysisProgressIndicator 
+              symbol={selectedSymbol}
+              onComplete={handleAnalysisComplete}
+            />
           </div>
         )}
 
@@ -173,6 +181,18 @@ export default function Home() {
               </p>
             </div>
           </div>
+        )}
+
+        {/* AIチャット機能 */}
+        {selectedSymbol && !isLoading && stockAnalysis && (
+          <AIChat 
+            stockSymbol={selectedSymbol}
+            analysisData={{
+              stockInfo,
+              technicalIndicators,
+              stockAnalysis
+            }}
+          />
         )}
       </main>
 
