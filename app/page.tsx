@@ -24,6 +24,10 @@ export default function Home() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
 
+  // デバッグ用：API URLを確認
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  console.log('API URL:', apiUrl);
+
   const handleSelectStock = async (symbol: string) => {
     setSelectedSymbol(symbol);
     setIsLoading(true);
@@ -44,7 +48,8 @@ export default function Home() {
       setStockAnalysis(analysis);
     } catch (err) {
       console.error('データ取得エラー:', err);
-      setError('データの取得に失敗しました。しばらくしてから再試行してください。');
+      const errorMessage = err instanceof Error ? err.message : 'データの取得に失敗しました。';
+      setError(`エラー: ${errorMessage} (API URL: ${apiUrl})`);
     } finally {
       setIsLoading(false);
     }
