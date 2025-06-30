@@ -77,6 +77,7 @@ export interface StockAnalysis {
     reasoning: string[];
   };
   timestamp: string;
+  advanced_trading?: any; // 高度な売買分析データ
 }
 
 // API関数

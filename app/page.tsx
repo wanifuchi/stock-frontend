@@ -8,6 +8,7 @@ import { TechnicalIndicators } from '@/components/TechnicalIndicators';
 import { StockAnalysis } from '@/components/StockAnalysis';
 import { AnalysisProgressIndicator } from '@/components/AnalysisProgressIndicator';
 import { AIChat } from '@/components/AIChat';
+import { TradingSignals } from '@/components/TradingSignals';
 import { 
   stockAPI, 
   StockInfo as StockInfoType, 
@@ -203,6 +204,14 @@ export default function Home() {
                   <TechnicalIndicators indicators={technicalIndicators} />
                 )}
               </div>
+            </div>
+
+            {/* 高度な売買シグナル（全幅表示） */}
+            {stockAnalysis?.advanced_trading && (
+              <div className="mt-6">
+                <TradingSignals tradingData={stockAnalysis.advanced_trading} />
+              </div>
+            )}
             </div>
           </div>
         )}
