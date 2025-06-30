@@ -75,13 +75,13 @@ export default function Home() {
               <div>
                 <h1 className="text-xl font-semibold tracking-tight">Stock Advisor</h1>
                 <p className="text-xs text-muted-foreground hidden sm:block">
-                  Intelligent investment analysis
+                  インテリジェント投資分析
                 </p>
               </div>
             </div>
             <Badge variant="outline" className="hidden sm:flex">
               <Brain className="h-3 w-3 mr-1" />
-              AI Powered
+              AI搭載
             </Badge>
           </div>
         </div>
@@ -92,13 +92,13 @@ export default function Home() {
         <div className="container max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-24">
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl lg:text-6xl font-light tracking-tight mb-6">
-              Make informed
+              賢明な
               <span className="block font-medium bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
-                investment decisions
+                投資判断を
               </span>
             </h2>
             <p className="text-lg text-muted-foreground mb-12 leading-relaxed">
-              Advanced AI analysis combining technical indicators, market sentiment, and institutional investor logic to provide precise buy and sell recommendations.
+              テクニカル指標、市場センチメント、機関投資家ロジックを組み合わせた高度なAI分析により、精密な売買推奨を提供します。
             </p>
             
             {/* エレガントな検索 */}
@@ -131,7 +131,7 @@ export default function Home() {
               <div className="absolute top-0 left-0 h-12 w-12 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
             </div>
             <p className="mt-6 text-sm text-muted-foreground font-medium">
-              Analyzing market data...
+              市場データを分析中...
             </p>
           </div>
         )}
@@ -166,10 +166,10 @@ export default function Home() {
                 <BarChart3 className="h-8 w-8 text-muted-foreground" />
               </div>
               <h2 className="text-2xl font-light tracking-tight mb-3">
-                Ready to analyze
+                分析の準備完了
               </h2>
               <p className="text-muted-foreground leading-relaxed">
-                Enter a stock symbol or company name above to get started with our AI-powered investment analysis.
+                上記に銘柄コードや企業名を入力して、AI搭載の投資分析を開始してください。
               </p>
             </div>
           </div>
@@ -181,9 +181,9 @@ export default function Home() {
         <div className="container max-w-7xl mx-auto px-6 lg:px-8 py-12">
           <div className="text-center">
             <p className="text-sm text-muted-foreground">
-              This platform provides analytical insights and should not be considered as investment advice.
+              このプラットフォームは分析情報を提供するものであり、投資助言として解釈されるべきではありません。
               <br className="hidden sm:block" />
-              Please conduct your own research and consult with financial advisors before making investment decisions.
+              投資判断を行う前に、ご自身で調査を行い、金融アドバイザーにご相談ください。
             </p>
           </div>
         </div>

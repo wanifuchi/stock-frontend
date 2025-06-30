@@ -58,7 +58,7 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
           value={query}
           onChange={(e) => setQuery(e.target.value)}
           onKeyPress={handleKeyPress}
-          placeholder="Search stocks, ETFs, or companies..."
+          placeholder="銘柄コード、ETF、企業名を検索..."
           className={cn(
             "pl-12 h-12 text-base bg-background/50 border-border/50",
             "focus:bg-background focus:border-primary/50",
@@ -125,7 +125,7 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
           <CardContent className="p-6">
             <div className="flex items-center justify-center space-x-3">
               <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <span className="text-sm text-muted-foreground">Searching...</span>
+              <span className="text-sm text-muted-foreground">検索中...</span>
             </div>
           </CardContent>
         </Card>
