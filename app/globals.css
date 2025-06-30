@@ -70,6 +70,40 @@ body {
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
+/* Gradient text fallback for better visibility */
+.gradient-text-fallback {
+  background: linear-gradient(to right, #2563eb, #9333ea, #1e40af);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  .gradient-text-fallback {
+    background: linear-gradient(to right, #60a5fa, #c084fc, #3b82f6);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+  }
+}
+
+/* Fallback for browsers that don't support background-clip */
+@supports not (background-clip: text) or not (-webkit-background-clip: text) {
+  .gradient-text-fallback {
+    background: none;
+    color: #2563eb;
+    -webkit-text-fill-color: initial;
+  }
+  
+  @media (prefers-color-scheme: dark) {
+    .gradient-text-fallback {
+      color: #60a5fa;
+    }
+  }
+}
+
 /* Custom scrollbar */
 ::-webkit-scrollbar {
   width: 8px;

@@ -93,7 +93,7 @@ export default function Home() {
           <div className="max-w-3xl mx-auto text-center">
             <h2 className="text-4xl lg:text-6xl font-light tracking-tight mb-6">
               次世代の
-              <span className="block font-medium bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+              <span className="block font-medium bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-600 bg-clip-text text-transparent gradient-text-fallback">
                 投資分析
               </span>
             </h2>
