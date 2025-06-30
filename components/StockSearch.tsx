@@ -1,8 +1,13 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Search } from 'lucide-react';
+import { Search, Loader2 } from 'lucide-react';
 import { stockAPI, StockSearchResult } from '@/lib/api';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { cn } from '@/lib/utils';
 
 interface StockSearchProps {
   onSelectStock: (symbol: string) => void;
@@ -43,53 +48,87 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
   };
 
   return (
-    <div className="relative w-full max-w-2xl mx-auto">
-      <div className="flex items-center gap-2">
-        <div className="relative flex-1">
-          <input
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="銘柄コードまたは企業名を入力"
-            className="w-full px-4 py-3 pr-12 text-lg border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-          />
-          <button
+    <div className="relative w-full">
+      <div className="group relative">
+        <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
+          <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
+        </div>
+        <Input
+          type="text"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Search stocks, ETFs, or companies..."
+          className={cn(
+            "pl-12 h-12 text-base bg-background/50 border-border/50",
+            "focus:bg-background focus:border-primary/50",
+            "transition-all duration-200"
+          )}
+        />
+        <div className="absolute inset-y-0 right-0 flex items-center pr-3">
+          <Button
             onClick={handleSearch}
-            disabled={isLoading}
-            className="absolute right-2 top-1/2 transform -translate-y-1/2 p-2 text-gray-500 hover:text-gray-700 disabled:opacity-50"
+            disabled={isLoading || !query.trim()}
+            size="sm"
+            variant="ghost"
+            className="h-8 w-8 p-0"
           >
-            <Search size={20} />
-          </button>
+            {isLoading ? (
+              <Loader2 className="h-4 w-4 animate-spin" />
+            ) : (
+              <Search className="h-4 w-4" />
+            )}
+          </Button>
         </div>
       </div>
 
-      {/* 検索結果ドロップダウン */}
+      {/* エレガントな検索結果ドロップダウン */}
       {showDropdown && results.length > 0 && (
-        <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg">
-          {results.map((result) => (
-            <button
-              key={result.symbol}
-              onClick={() => handleSelectStock(result.symbol)}
-              className="w-full px-4 py-3 text-left hover:bg-gray-50 border-b border-gray-100 last:border-b-0"
-            >
-              <div className="flex justify-between items-center">
-                <div>
-                  <span className="font-semibold">{result.symbol}</span>
-                  <span className="text-gray-500 ml-2">{result.name}</span>
-                </div>
-                <span className="text-sm text-gray-400">{result.exchange}</span>
-              </div>
-            </button>
-          ))}
-        </div>
+        <Card className="absolute z-50 w-full mt-2 shadow-xl border-border/50">
+          <CardContent className="p-0">
+            <div className="max-h-80 overflow-y-auto">
+              {results.map((result, index) => (
+                <button
+                  key={result.symbol}
+                  onClick={() => handleSelectStock(result.symbol)}
+                  className={cn(
+                    "w-full px-4 py-3 text-left transition-colors",
+                    "hover:bg-muted/50 focus:bg-muted/50 focus:outline-none",
+                    index !== results.length - 1 && "border-b border-border/30"
+                  )}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="flex flex-col">
+                      <div className="flex items-center space-x-2">
+                        <span className="font-semibold text-sm tracking-wide">
+                          {result.symbol}
+                        </span>
+                        <Badge variant="outline" className="h-5 text-xs">
+                          {result.exchange}
+                        </Badge>
+                      </div>
+                      <span className="text-sm text-muted-foreground truncate max-w-xs">
+                        {result.name}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
       )}
 
-      {/* ローディング表示 */}
+      {/* ローディング状態 */}
       {isLoading && (
-        <div className="absolute z-10 w-full mt-2 bg-white border border-gray-200 rounded-lg shadow-lg p-4">
-          <div className="text-center text-gray-500">検索中...</div>
-        </div>
+        <Card className="absolute z-50 w-full mt-2 shadow-xl border-border/50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center space-x-3">
+              <Loader2 className="h-4 w-4 animate-spin text-primary" />
+              <span className="text-sm text-muted-foreground">Searching...</span>
+            </div>
+          </CardContent>
+        </Card>
       )}
     </div>
   );

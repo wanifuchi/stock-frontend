@@ -13,7 +13,9 @@ import {
   TechnicalIndicators as TechnicalIndicatorsType, 
   StockAnalysis as StockAnalysisType 
 } from '@/lib/api';
-import { Loader2 } from 'lucide-react';
+import { Card } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
+import { Loader2, TrendingUp, BarChart3, Brain } from 'lucide-react';
 
 export default function Home() {
   const [selectedSymbol, setSelectedSymbol] = useState<string>('');
@@ -61,80 +63,129 @@ export default function Home() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
-      {/* ヘッダー */}
-      <header className="bg-white shadow-sm border-b">
-        <div className="max-w-6xl mx-auto px-4 py-6">
-          <h1 className="text-3xl font-bold text-gray-900">Stock Advisor AI</h1>
-          <p className="text-gray-600 mt-2">
-            AIが株式を分析し、投資アドバイスを提供します
-          </p>
+    <div className="min-h-screen bg-background">
+      {/* ミニマルなヘッダー */}
+      <header className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+        <div className="container max-w-7xl mx-auto px-6 lg:px-8">
+          <div className="flex h-16 items-center justify-between">
+            <div className="flex items-center space-x-3">
+              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-primary-foreground" />
+              </div>
+              <div>
+                <h1 className="text-xl font-semibold tracking-tight">Stock Advisor</h1>
+                <p className="text-xs text-muted-foreground hidden sm:block">
+                  Intelligent investment analysis
+                </p>
+              </div>
+            </div>
+            <Badge variant="outline" className="hidden sm:flex">
+              <Brain className="h-3 w-3 mr-1" />
+              AI Powered
+            </Badge>
+          </div>
         </div>
       </header>
 
-      {/* メインコンテンツ */}
-      <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* 検索セクション */}
-        <div className="mb-8">
-          <StockSearch onSelectStock={handleSelectStock} />
+      {/* ヒーローセクション */}
+      <section className="border-b border-border/50">
+        <div className="container max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-24">
+          <div className="max-w-3xl mx-auto text-center">
+            <h2 className="text-4xl lg:text-6xl font-light tracking-tight mb-6">
+              Make informed
+              <span className="block font-medium bg-gradient-to-r from-primary to-primary/70 bg-clip-text text-transparent">
+                investment decisions
+              </span>
+            </h2>
+            <p className="text-lg text-muted-foreground mb-12 leading-relaxed">
+              Advanced AI analysis combining technical indicators, market sentiment, and institutional investor logic to provide precise buy and sell recommendations.
+            </p>
+            
+            {/* エレガントな検索 */}
+            <div className="max-w-md mx-auto">
+              <StockSearch onSelectStock={handleSelectStock} />
+            </div>
+          </div>
         </div>
+      </section>
 
+      {/* メインコンテンツ */}
+      <main className="container max-w-7xl mx-auto px-6 lg:px-8 py-12">
         {/* エラー表示 */}
         {error && (
-          <div className="mb-6 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
+          <Card className="mb-8 border-destructive/50 bg-destructive/5">
+            <div className="p-6">
+              <div className="flex items-center space-x-3">
+                <div className="h-2 w-2 rounded-full bg-destructive"></div>
+                <p className="text-sm text-destructive font-medium">{error}</p>
+              </div>
+            </div>
+          </Card>
         )}
 
-        {/* ローディング表示 */}
+        {/* エレガントなローディング */}
         {isLoading && (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="animate-spin mr-2" size={24} />
-            <span>データを取得中...</span>
-          </div>
-        )}
-
-        {/* 株式データ表示 */}
-        {selectedSymbol && !isLoading && (
-          <div className="space-y-6">
-            {/* 株式情報とチャート */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {stockInfo && <StockInfo stockInfo={stockInfo} />}
-              {priceHistory && <StockChart priceHistory={priceHistory} />}
+          <div className="flex flex-col items-center justify-center py-24">
+            <div className="relative">
+              <div className="h-12 w-12 rounded-full border-2 border-muted"></div>
+              <div className="absolute top-0 left-0 h-12 w-12 rounded-full border-2 border-primary border-t-transparent animate-spin"></div>
             </div>
-
-            {/* テクニカル指標とAI分析 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-              {technicalIndicators && (
-                <TechnicalIndicators indicators={technicalIndicators} />
-              )}
-              {stockAnalysis && <StockAnalysis analysis={stockAnalysis} />}
-            </div>
-          </div>
-        )}
-
-        {/* 初期状態のメッセージ */}
-        {!selectedSymbol && !isLoading && (
-          <div className="text-center py-12">
-            <h2 className="text-xl font-semibold text-gray-700 mb-2">
-              銘柄を検索してください
-            </h2>
-            <p className="text-gray-500">
-              アメリカ株、ETF、世界株式の分析を開始するには、
-              <br />
-              上記の検索ボックスに銘柄コードまたは企業名を入力してください
+            <p className="mt-6 text-sm text-muted-foreground font-medium">
+              Analyzing market data...
             </p>
+          </div>
+        )}
+
+        {/* モダンな株式データ表示 */}
+        {selectedSymbol && !isLoading && (
+          <div className="space-y-8">
+            {/* グリッドレイアウト - デスクトップで最適化 */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+              {/* メイン情報 - より大きなスペース */}
+              <div className="xl:col-span-2 space-y-6">
+                {stockInfo && <StockInfo stockInfo={stockInfo} />}
+                {priceHistory && <StockChart priceHistory={priceHistory} />}
+              </div>
+
+              {/* サイドパネル - 分析とテクニカル */}
+              <div className="space-y-6">
+                {stockAnalysis && <StockAnalysis analysis={stockAnalysis} />}
+                {technicalIndicators && (
+                  <TechnicalIndicators indicators={technicalIndicators} />
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* 美しい空状態 */}
+        {!selectedSymbol && !isLoading && (
+          <div className="text-center py-24">
+            <div className="max-w-md mx-auto">
+              <div className="h-16 w-16 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
+                <BarChart3 className="h-8 w-8 text-muted-foreground" />
+              </div>
+              <h2 className="text-2xl font-light tracking-tight mb-3">
+                Ready to analyze
+              </h2>
+              <p className="text-muted-foreground leading-relaxed">
+                Enter a stock symbol or company name above to get started with our AI-powered investment analysis.
+              </p>
+            </div>
           </div>
         )}
       </main>
 
-      {/* フッター */}
-      <footer className="bg-white border-t mt-16">
-        <div className="max-w-6xl mx-auto px-4 py-6 text-center text-gray-500">
-          <p className="text-sm">
-            ※ 本情報は投資勧誘を目的とするものではありません。
-            最終的な投資判断はご自身の責任で行ってください。
-          </p>
+      {/* ミニマルなフッター */}
+      <footer className="border-t border-border/50 mt-24">
+        <div className="container max-w-7xl mx-auto px-6 lg:px-8 py-12">
+          <div className="text-center">
+            <p className="text-sm text-muted-foreground">
+              This platform provides analytical insights and should not be considered as investment advice.
+              <br className="hidden sm:block" />
+              Please conduct your own research and consult with financial advisors before making investment decisions.
+            </p>
+          </div>
         </div>
       </footer>
     </div>
