@@ -38,6 +38,20 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
   const [isLoading, setIsLoading] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // 銘柄が変更されたらチャットをリセット
+  useEffect(() => {
+    setMessages([
+      {
+        id: Date.now().toString(),
+        type: 'ai',
+        content: `こんにちは！${stockSymbol}の分析結果についてご質問はありますか？投資戦略、リスク分析、市場トレンドなど、何でもお聞きください。`,
+        timestamp: new Date()
+      }
+    ]);
+    setInputValue('');
+    setIsLoading(false);
+  }, [stockSymbol]);
 
   // サジェスト質問
   const suggestedQuestions = [
@@ -115,8 +129,8 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
 
   if (!isExpanded) {
     return (
-      <Card className="fixed bottom-6 right-6 z-50 w-80 shadow-xl">
-        <CardHeader className="pb-3">
+      <Card className="fixed bottom-6 right-6 z-50 w-80 shadow-xl bg-background border-border">
+        <CardHeader className="pb-3 bg-background">
           <Button
             onClick={() => setIsExpanded(true)}
             className="w-full justify-start space-x-2 h-auto p-4"
@@ -144,8 +158,8 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 z-50 w-96 h-[500px] shadow-2xl flex flex-col">
-      <CardHeader className="pb-3 border-b">
+    <Card className="fixed bottom-6 right-6 z-50 w-96 h-[500px] shadow-2xl flex flex-col bg-background border-border">
+      <CardHeader className="pb-3 border-b bg-background">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full">
@@ -170,10 +184,10 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
       </CardHeader>
 
       {/* チャットメッセージエリア */}
-      <CardContent className="flex-1 overflow-hidden p-0">
-        <div className="h-full flex flex-col">
+      <CardContent className="flex-1 overflow-hidden p-0 bg-background">
+        <div className="h-full flex flex-col bg-background">
           {/* メッセージ一覧 */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -226,7 +240,7 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
 
           {/* サジェスト質問 */}
           {messages.length <= 1 && (
-            <div className="p-4 border-t bg-muted/30">
+            <div className="p-4 border-t bg-background">
               <p className="text-xs text-muted-foreground mb-2 flex items-center">
                 <Lightbulb className="h-3 w-3 mr-1" />
                 よくある質問
@@ -246,7 +260,7 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
           )}
 
           {/* 入力エリア */}
-          <div className="p-4 border-t">
+          <div className="p-4 border-t bg-background">
             <div className="flex space-x-2">
               <Input
                 value={inputValue}

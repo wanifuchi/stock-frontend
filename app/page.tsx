@@ -36,18 +36,19 @@ export default function Home() {
   console.log('API URL:', apiUrl);
 
   const handleSelectStock = async (symbol: string) => {
+    // 全データを即座にクリア（再検索時の表示問題を防ぐ）
+    setStockInfo(null);
+    setPriceHistory(null);
+    setTechnicalIndicators(null);
+    setStockAnalysis(null);
+    
+    // 新しい銘柄を設定
     setSelectedSymbol(symbol);
     setShowProgressIndicator(true);
     setIsLoading(true);
     setError('');
     setAnalysisProgress(0);
     setCurrentAnalysisStep('fetch-data');
-    
-    // 既存データをクリア
-    setStockInfo(null);
-    setPriceHistory(null);
-    setTechnicalIndicators(null);
-    setStockAnalysis(null);
 
     try {
       // ステップ1: 基本情報を取得
