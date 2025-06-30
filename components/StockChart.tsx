@@ -47,13 +47,13 @@ export const StockChart: React.FC<StockChartProps> = ({ priceHistory }) => {
   };
 
   // カスタムツールチップ
-  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; color: string }>; label?: string }) => {
-    if (active && payload && payload.length) {
+  const CustomTooltip = ({ active, payload, label }: { active?: boolean; payload?: Array<{ value: number; color: string; payload?: { volume: number } }>; label?: string }) => {
+    if (active && payload && payload.length && label) {
       return (
         <div className="bg-white p-4 border border-gray-200 rounded-lg shadow-lg">
           <p className="font-semibold">{format(new Date(label), 'yyyy/MM/dd')}</p>
           <p className="text-blue-600">価格: {formatPrice(payload[0].value)}</p>
-          <p className="text-gray-600">出来高: {formatVolume(payload[0].payload.volume)}</p>
+          <p className="text-gray-600">出来高: {formatVolume(payload[0].payload?.volume || 0)}</p>
         </div>
       );
     }
