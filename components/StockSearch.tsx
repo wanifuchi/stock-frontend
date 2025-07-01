@@ -36,11 +36,17 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
 
       setIsLoading(true);
       try {
+        console.log('検索実行:', debouncedQuery); // デバッグログ
         const data = await stockAPI.searchStocks(debouncedQuery);
+        console.log('検索結果:', data); // デバッグログ
         setResults(data.results);
         setShowDropdown(data.results.length > 0);
       } catch (error) {
         console.error('リアルタイム検索エラー:', error);
+        // エラー詳細をデバッグ出力
+        if (error instanceof Error) {
+          console.error('エラーメッセージ:', error.message);
+        }
         setResults([]);
         setShowDropdown(false);
       } finally {
