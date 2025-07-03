@@ -179,7 +179,7 @@ export default function Home() {
               </div>
               <div className="space-y-6">
                 {technicalIndicators && (
-                  <TechnicalIndicators indicators={technicalIndicators} />
+                  <TechnicalIndicators indicators={technicalIndicators} symbol={selectedSymbol} />
                 )}
               </div>
             </div>
@@ -201,7 +201,7 @@ export default function Home() {
               <div className="space-y-6">
                 {stockAnalysis && <StockAnalysis analysis={stockAnalysis} />}
                 {technicalIndicators && (
-                  <TechnicalIndicators indicators={technicalIndicators} />
+                  <TechnicalIndicators indicators={technicalIndicators} symbol={selectedSymbol} />
                 )}
               </div>
             </div>
