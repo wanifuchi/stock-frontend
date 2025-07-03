@@ -75,31 +75,39 @@ export const AnalysisProgressIndicator: React.FC<AnalysisProgressIndicatorProps>
   // 外部進行状況に基づくステップ更新
   useEffect(() => {
     if (externalProgress !== undefined && externalCurrentStep) {
-      const stepIndex = steps.findIndex(step => step.id === externalCurrentStep);
-      if (stepIndex !== -1 && stepIndex !== currentStep) {
-        setCurrentStep(stepIndex);
-        
-        // ステップ状態を更新
-        setSteps(prev => prev.map((step, index) => {
-          if (index < stepIndex) {
-            return { ...step, status: 'completed' };
-          } else if (index === stepIndex) {
-            return { ...step, status: 'running' };
-          } else {
-            return { ...step, status: 'pending' };
-          }
-        }));
-      }
-      
-      // 100%完了時
-      if (externalProgress >= 100) {
-        setSteps(prev => prev.map(step => ({ ...step, status: 'completed' })));
-        setTimeout(() => {
-          onComplete?.();
-        }, 300);
-      }
+      setSteps(prev => {
+        const stepIndex = prev.findIndex(step => step.id === externalCurrentStep);
+        if (stepIndex !== -1) {
+          setCurrentStep(stepIndex);
+          
+          // ステップ状態を更新
+          return prev.map((step, index) => {
+            if (index < stepIndex) {
+              return { ...step, status: 'completed' };
+            } else if (index === stepIndex) {
+              return { ...step, status: 'running' };
+            } else {
+              return { ...step, status: 'pending' };
+            }
+          });
+        }
+        return prev;
+      });
     }
-  }, [externalProgress, externalCurrentStep, steps, currentStep, onComplete]);
+    
+    // 100%完了時（別のuseEffectで処理）
+  }, [externalProgress, externalCurrentStep]);
+
+  // 100%完了時の処理
+  useEffect(() => {
+    if (externalProgress !== undefined && externalProgress >= 100) {
+      setSteps(prev => prev.map(step => ({ ...step, status: 'completed' })));
+      const timer = setTimeout(() => {
+        onComplete?.();
+      }, 300);
+      return () => clearTimeout(timer);
+    }
+  }, [externalProgress, onComplete]);
 
   // ステップ進行の自動化（外部制御がない場合のみ）
   useEffect(() => {
@@ -124,7 +132,7 @@ export const AnalysisProgressIndicator: React.FC<AnalysisProgressIndicatorProps>
 
         // 次のステップへ
         if (currentStep + 1 < steps.length) {
-          setCurrentStep(currentStep + 1);
+          setCurrentStep(prev => prev + 1);
         } else {
           // 全ステップ完了
           setTimeout(() => {
@@ -137,7 +145,7 @@ export const AnalysisProgressIndicator: React.FC<AnalysisProgressIndicatorProps>
     return () => {
       if (stepTimer) clearTimeout(stepTimer);
     };
-  }, [currentStep, steps, onComplete, externalProgress]);
+  }, [currentStep, externalProgress, onComplete]);
 
   // 進行状況のパーセンテージ計算（外部制御優先、100%を超えないよう制限）
   const progressPercentage = externalProgress !== undefined 
