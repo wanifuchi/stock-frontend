@@ -129,8 +129,8 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
 
   if (!isExpanded) {
     return (
-      <Card className="fixed bottom-6 right-6 z-50 w-80 shadow-xl bg-background border-border">
-        <CardHeader className="pb-3 bg-background">
+      <Card className="fixed bottom-6 right-6 z-50 w-80 shadow-xl bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-border">
+        <CardHeader className="pb-3 bg-white/95 dark:bg-gray-900/95">
           <Button
             onClick={() => setIsExpanded(true)}
             className="w-full justify-start space-x-2 h-auto p-4"
@@ -158,8 +158,8 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 z-50 w-96 h-[500px] shadow-2xl flex flex-col bg-background border-border">
-      <CardHeader className="pb-3 border-b bg-background">
+    <Card className="fixed bottom-6 right-6 z-50 w-96 h-[500px] shadow-2xl flex flex-col bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm border-border">
+      <CardHeader className="pb-3 border-b bg-white/95 dark:bg-gray-900/95 backdrop-blur-sm">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full">
@@ -184,10 +184,10 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
       </CardHeader>
 
       {/* チャットメッセージエリア */}
-      <CardContent className="flex-1 overflow-hidden p-0 bg-background">
-        <div className="h-full flex flex-col bg-background">
+      <CardContent className="flex-1 overflow-hidden p-0 bg-white/95 dark:bg-gray-900/95">
+        <div className="h-full flex flex-col bg-white/95 dark:bg-gray-900/95">
           {/* メッセージ一覧 */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-background">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-white/95 dark:bg-gray-900/95">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -207,7 +207,7 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
                     "max-w-[80%] rounded-lg px-3 py-2 text-sm",
                     message.type === 'user'
                       ? "bg-blue-500 text-white"
-                      : "bg-muted text-foreground"
+                      : "bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border border-gray-200 dark:border-gray-700"
                   )}
                 >
                   {message.content}
@@ -226,7 +226,7 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
                 <div className="p-1 bg-blue-100 rounded-full">
                   <Bot className="h-4 w-4 text-blue-600" />
                 </div>
-                <div className="bg-muted rounded-lg px-3 py-2">
+                <div className="bg-gray-100 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-lg px-3 py-2">
                   <div className="flex space-x-1">
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
                     <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
@@ -240,7 +240,7 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
 
           {/* サジェスト質問 */}
           {messages.length <= 1 && (
-            <div className="p-4 border-t bg-background">
+            <div className="p-4 border-t bg-white/95 dark:bg-gray-900/95">
               <p className="text-xs text-muted-foreground mb-2 flex items-center">
                 <Lightbulb className="h-3 w-3 mr-1" />
                 よくある質問
@@ -250,7 +250,7 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
                   <button
                     key={index}
                     onClick={() => handleSendMessage(question)}
-                    className="block w-full text-left text-xs p-2 rounded hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
+                    className="block w-full text-left text-xs p-2 rounded hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
                   >
                     {question}
                   </button>
@@ -260,7 +260,7 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
           )}
 
           {/* 入力エリア */}
-          <div className="p-4 border-t bg-background">
+          <div className="p-4 border-t bg-white/95 dark:bg-gray-900/95">
             <div className="flex space-x-2">
               <Input
                 value={inputValue}
