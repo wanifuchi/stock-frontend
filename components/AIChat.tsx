@@ -210,8 +210,8 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
 
   if (!isExpanded) {
     return (
-      <Card className="fixed bottom-6 right-6 z-50 w-80 shadow-xl bg-white/90 dark:bg-gray-900/95 backdrop-blur-md border-border">
-        <CardHeader className="pb-3 bg-white/90 dark:bg-gray-900/95 backdrop-blur-md">
+      <Card className="fixed bottom-6 right-6 z-50 w-80 shadow-xl bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+        <CardHeader className="pb-3 bg-white dark:bg-gray-900">
           <Button
             onClick={() => setIsExpanded(true)}
             className="w-full justify-start space-x-2 h-auto p-4"
@@ -222,8 +222,8 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
                 <MessageCircle className="h-5 w-5 text-blue-600" />
               </div>
               <div className="text-left">
-                <h3 className="font-semibold">AI投資アドバイザー</h3>
-                <p className="text-sm text-muted-foreground">
+                <h3 className="font-semibold text-gray-900 dark:text-gray-100">AI投資アドバイザー</h3>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
                   {stockSymbol}について質問する
                 </p>
               </div>
@@ -239,16 +239,16 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
   }
 
   return (
-    <Card className="fixed bottom-6 right-6 z-50 w-96 h-[500px] shadow-2xl flex flex-col bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-md border-border">
-      <CardHeader className="pb-3 border-b bg-gray-50/95 dark:bg-gray-900/95 backdrop-blur-md">
+    <Card className="fixed bottom-6 right-6 z-50 w-96 h-[500px] shadow-2xl flex flex-col bg-white dark:bg-gray-900 border-gray-200 dark:border-gray-700">
+      <CardHeader className="pb-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-900">
         <div className="flex items-center justify-between">
           <div className="flex items-center space-x-3">
             <div className="p-2 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full">
               <Bot className="h-5 w-5 text-white" />
             </div>
             <div>
-              <h3 className="font-semibold">AI投資アドバイザー</h3>
-              <p className="text-xs text-muted-foreground">
+              <h3 className="font-semibold text-gray-900 dark:text-gray-100">AI投資アドバイザー</h3>
+              <p className="text-xs text-gray-600 dark:text-gray-400">
                 {stockSymbol}専門アナリスト
               </p>
             </div>
@@ -265,10 +265,10 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
       </CardHeader>
 
       {/* チャットメッセージエリア */}
-      <CardContent className="flex-1 overflow-hidden p-0 bg-gray-50/95 dark:bg-gray-900/95">
-        <div className="h-full flex flex-col bg-gray-50/95 dark:bg-gray-900/95">
+      <CardContent className="flex-1 overflow-hidden p-0 bg-gray-50 dark:bg-gray-900">
+        <div className="h-full flex flex-col bg-gray-50 dark:bg-gray-900">
           {/* メッセージ一覧 */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50/95 dark:bg-gray-900/95">
+          <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50 dark:bg-gray-900">
             {messages.map((message) => (
               <div
                 key={message.id}
@@ -321,8 +321,8 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
 
           {/* サジェスト質問 */}
           {messages.length <= 1 && (
-            <div className="p-4 border-t bg-gray-50/95 dark:bg-gray-900/95">
-              <p className="text-xs text-muted-foreground mb-2 flex items-center">
+            <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+              <p className="text-xs text-gray-600 dark:text-gray-400 mb-2 flex items-center">
                 <Lightbulb className="h-3 w-3 mr-1" />
                 よくある質問
               </p>
@@ -331,7 +331,7 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
                   <button
                     key={index}
                     onClick={() => handleSendMessage(question)}
-                    className="block w-full text-left text-xs p-2 rounded hover:bg-white dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200 border border-transparent hover:border-gray-200 dark:hover:border-gray-700"
+                    className="block w-full text-left text-xs p-2 rounded hover:bg-white dark:hover:bg-gray-800 transition-colors text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-gray-100 border border-transparent hover:border-gray-200 dark:hover:border-gray-600"
                   >
                     {question}
                   </button>
@@ -341,7 +341,7 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
           )}
 
           {/* 入力エリア */}
-          <div className="p-4 border-t bg-gray-50/95 dark:bg-gray-900/95">
+          <div className="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
             <div className="flex space-x-2">
               <Input
                 value={inputValue}
