@@ -77,11 +77,19 @@ const generateMACDData = (macdData: { macd?: number; signal?: number; histogram?
   return data;
 };
 
-export const TechnicalIndicators: React.FC<TechnicalIndicatorsProps> = ({ indicators, symbol }) => {
+interface ChartDataPoint {
+  date: string;
+  rsi?: number;
+  macd?: number;
+  signal?: number;
+  histogram?: number;
+}
+
+export const TechnicalIndicators: React.FC<TechnicalIndicatorsProps> = ({ indicators }) => {
   const [showRSIChart, setShowRSIChart] = useState(false);
   const [showMACDChart, setShowMACDChart] = useState(false);
-  const [rsiData, setRsiData] = useState<any[]>([]);
-  const [macdData, setMacdData] = useState<any[]>([]);
+  const [rsiData, setRsiData] = useState<ChartDataPoint[]>([]);
+  const [macdData, setMacdData] = useState<ChartDataPoint[]>([]);
 
   useEffect(() => {
     if (indicators.rsi) {

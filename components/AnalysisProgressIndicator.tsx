@@ -145,7 +145,7 @@ export const AnalysisProgressIndicator: React.FC<AnalysisProgressIndicatorProps>
     return () => {
       if (stepTimer) clearTimeout(stepTimer);
     };
-  }, [currentStep, externalProgress, onComplete]);
+  }, [currentStep, externalProgress, onComplete, steps]);
 
   // 進行状況のパーセンテージ計算（外部制御優先、100%を超えないよう制限）
   const progressPercentage = externalProgress !== undefined 
