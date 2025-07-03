@@ -92,7 +92,6 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
         const confidence = analysisData?.analysis?.confidence || 0.5;
         const reasoning = analysisData?.analysis?.reasoning || [];
         const rsi = indicatorsData?.rsi || 50;
-        const macd = indicatorsData?.macd || {};
 
         switch (keyword) {
           case '買い時':
@@ -106,17 +105,17 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
 
           case 'リスク':
             const volatilityRisk = changePercent > 3 || changePercent < -3 ? 'ボラティリティが高く、短期的な価格変動リスクがあります。' : '';
-            return `${stockSymbol}の主なリスクとして、${reasoning.filter(r => r.includes('リスク') || r.includes('不確実')).join('、')}が挙げられます。${volatilityRisk} 現在の価格変動率は${changePercent.toFixed(2)}%で、適切なストップロス設定が重要です。`;
+            return `${stockSymbol}の主なリスクとして、${reasoning.filter((r: string) => r.includes('リスク') || r.includes('不確実')).join('、')}が挙げられます。${volatilityRisk} 現在の価格変動率は${changePercent.toFixed(2)}%で、適切なストップロス設定が重要です。`;
 
           case '長期投資':
             if (confidence > 0.7) {
-              return `${stockSymbol}は長期投資に適した銘柄と考えられます。分析信頼度が${Math.round(confidence * 100)}%と高く、${reasoning.find(r => r.includes('期待') || r.includes('成長')) || '基本的なファンダメンタルズが良好'}です。ただし、定期的な見直しをお勧めします。`;
+              return `${stockSymbol}は長期投資に適した銘柄と考えられます。分析信頼度が${Math.round(confidence * 100)}%と高く、${reasoning.find((r: string) => r.includes('期待') || r.includes('成長')) || '基本的なファンダメンタルズが良好'}です。ただし、定期的な見直しをお勧めします。`;
             } else {
               return `${stockSymbol}の長期投資については慎重な検討が必要です。現在の分析では不確定要素が多く、より明確なトレンドが確立されるまで待つことをお勧めします。`;
             }
 
           case '競合':
-            return `${stockSymbol}の競合分析では、現在の市場ポジションと${reasoning.find(r => r.includes('センチメント') || r.includes('動向')) || 'テクニカル指標の状況'}を考慮する必要があります。業界全体の動向と併せて評価することが重要です。`;
+            return `${stockSymbol}の競合分析では、現在の市場ポジションと${reasoning.find((r: string) => r.includes('センチメント') || r.includes('動向')) || 'テクニカル指標の状況'}を考慮する必要があります。業界全体の動向と併せて評価することが重要です。`;
 
           case '割安':
             if (recommendation === 'BUY' && changePercent < 0) {
