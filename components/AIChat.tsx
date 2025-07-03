@@ -71,25 +71,95 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
     scrollToBottom();
   }, [messages]);
 
-  const simulateAIResponse = (userQuestion: string): string => {
-    // 実際の実装では、ここでバックエンドのAI APIを呼び出します
-    const responses = {
-      '買い時': `${stockSymbol}の現在のテクニカル指標を見ると、RSIが適正レンジにあり、MACDも上昇トレンドを示しています。ただし、市場全体の動向も考慮し、リスク管理を徹底することをお勧めします。`,
-      'リスク': `主なリスクとしては、業界特有の規制変更、競合激化、マクロ経済の影響が挙げられます。特に${stockSymbol}の場合、ボラティリティが比較的高いため、ポジションサイズの調整が重要です。`,
-      '長期投資': `${stockSymbol}は長期投資の観点から興味深い銘柄です。業績の成長性、市場でのポジション、財務の健全性を総合的に評価すると、中長期的な価値向上が期待できます。`,
-      '競合': '競合他社と比較すると、${stockSymbol}は技術力と市場シェアの面で優位性を持っています。ただし、新興企業の台頭には注意が必要です。',
-      '割安': '現在のPERやPBRから判断すると、${stockSymbol}は適正価格からやや割安の水準にあります。ただし、業績の先行指標も併せて検討することをお勧めします。',
-      '利益確定': '利益確定は投資目標によりますが、テクニカル的には目標価格に近づいた際の段階的な利確をお勧めします。また、ストップロス設定も忘れずに。'
-    };
+  const simulateAIResponse = async (userQuestion: string): Promise<string> => {
+    try {
+      // バックエンドから最新の分析データを取得
+      const [stockResponse, analysisResponse, indicatorsResponse] = await Promise.all([
+        fetch(`/api/stocks/${stockSymbol}`).catch(() => null),
+        fetch(`/api/stocks/${stockSymbol}/analysis`).catch(() => null),
+        fetch(`/api/stocks/${stockSymbol}/indicators`).catch(() => null)
+      ]);
 
-    // キーワードマッチングで適切な回答を選択
-    for (const [keyword, response] of Object.entries(responses)) {
-      if (userQuestion.includes(keyword)) {
-        return response;
+      const stockData = stockResponse?.ok ? await stockResponse.json() : null;
+      const analysisData = analysisResponse?.ok ? await analysisResponse.json() : null;
+      const indicatorsData = indicatorsResponse?.ok ? await indicatorsResponse.json() : null;
+
+      // 分析データに基づいて文脈に適した回答を生成
+      const generateContextualResponse = (keyword: string): string => {
+        const currentPrice = stockData?.current_price || 0;
+        const changePercent = stockData?.change_percent || 0;
+        const recommendation = analysisData?.analysis?.recommendation || 'HOLD';
+        const confidence = analysisData?.analysis?.confidence || 0.5;
+        const reasoning = analysisData?.analysis?.reasoning || [];
+        const rsi = indicatorsData?.rsi || 50;
+        const macd = indicatorsData?.macd || {};
+
+        switch (keyword) {
+          case '買い時':
+            if (recommendation === 'BUY') {
+              return `${stockSymbol}の分析結果では、現在「買い推奨」となっています（信頼度${Math.round(confidence * 100)}%）。${reasoning.slice(0, 2).join('、')}。RSI値${rsi}とMACDの状況も買いシグナルを支持しています。ただし、リスク管理として適切なポジションサイズで投資することをお勧めします。`;
+            } else if (recommendation === 'SELL') {
+              return `現在の分析では${stockSymbol}は「売り推奨」となっており、買い時ではないかもしれません。${reasoning[0]}。市場環境が改善するまで様子見をお勧めします。`;
+            } else {
+              return `${stockSymbol}は現在「様子見」となっています。${reasoning[0]}。明確な買いシグナルが出るまで待機することをお勧めします。`;
+            }
+
+          case 'リスク':
+            const volatilityRisk = changePercent > 3 || changePercent < -3 ? 'ボラティリティが高く、短期的な価格変動リスクがあります。' : '';
+            return `${stockSymbol}の主なリスクとして、${reasoning.filter(r => r.includes('リスク') || r.includes('不確実')).join('、')}が挙げられます。${volatilityRisk} 現在の価格変動率は${changePercent.toFixed(2)}%で、適切なストップロス設定が重要です。`;
+
+          case '長期投資':
+            if (confidence > 0.7) {
+              return `${stockSymbol}は長期投資に適した銘柄と考えられます。分析信頼度が${Math.round(confidence * 100)}%と高く、${reasoning.find(r => r.includes('期待') || r.includes('成長')) || '基本的なファンダメンタルズが良好'}です。ただし、定期的な見直しをお勧めします。`;
+            } else {
+              return `${stockSymbol}の長期投資については慎重な検討が必要です。現在の分析では不確定要素が多く、より明確なトレンドが確立されるまで待つことをお勧めします。`;
+            }
+
+          case '競合':
+            return `${stockSymbol}の競合分析では、現在の市場ポジションと${reasoning.find(r => r.includes('センチメント') || r.includes('動向')) || 'テクニカル指標の状況'}を考慮する必要があります。業界全体の動向と併せて評価することが重要です。`;
+
+          case '割安':
+            if (recommendation === 'BUY' && changePercent < 0) {
+              return `現在の分析では${stockSymbol}は割安水準にある可能性があります。価格が${changePercent.toFixed(2)}%下落している中で買い推奨が出ており、${reasoning[0]}。ただし、さらなる下落リスクも考慮してください。`;
+            } else if (changePercent > 5) {
+              return `${stockSymbol}は最近${changePercent.toFixed(2)}%上昇しており、割安とは言えない水準かもしれません。現在の価格が適正かどうか慎重に判断する必要があります。`;
+            } else {
+              return `${stockSymbol}の現在価格$${currentPrice}は、テクニカル分析の観点から適正レンジにあると考えられます。${reasoning[0]}`;
+            }
+
+          case '利益確定':
+            const targetPrice = analysisData?.analysis?.target_price;
+            if (targetPrice && recommendation === 'BUY') {
+              return `${stockSymbol}の目標価格は$${targetPrice}に設定されています。現在価格$${currentPrice}から${Math.round((targetPrice - currentPrice) / currentPrice * 100)}%の上昇余地があります。段階的な利益確定戦略をお勧めします。`;
+            } else {
+              return `現在の市況では${stockSymbol}の明確な利益確定タイミングは示されていません。${reasoning[0]}。リスク管理を優先してください。`;
+            }
+
+          default:
+            return `${stockSymbol}の現在の状況：価格$${currentPrice}（${changePercent > 0 ? '+' : ''}${changePercent.toFixed(2)}%）、推奨${recommendation}、信頼度${Math.round(confidence * 100)}%。${reasoning[0]}`;
+        }
+      };
+
+      // キーワードマッチングで適切な回答を選択
+      const keywords = ['買い時', 'リスク', '長期投資', '競合', '割安', '利益確定'];
+      for (const keyword of keywords) {
+        if (userQuestion.includes(keyword)) {
+          return generateContextualResponse(keyword);
+        }
       }
-    }
 
-    return `${stockSymbol}について詳しく分析させていただきます。現在の市場状況とテクニカル指標を考慮すると、慎重なアプローチをお勧めします。より具体的な質問をいただければ、詳細な回答をご提供できます。`;
+      // PBRに関する特別な対応
+      if (userQuestion.includes('PBR') || userQuestion.includes('価格純資産倍率')) {
+        return `${stockSymbol}のPBR分析について、現在の株価$${stockData?.current_price || 'N/A'}とテクニカル指標から判断すると、${analysisData?.analysis?.reasoning?.[0] || 'バリュエーションの詳細分析が必要'}です。PBRが割安水準にある場合は投資機会となりますが、業績動向も併せて検討することが重要です。`;
+      }
+
+      // デフォルト回答
+      return `${stockSymbol}について分析いたします。現在価格$${stockData?.current_price || 'N/A'}、推奨${analysisData?.analysis?.recommendation || 'N/A'}。${analysisData?.analysis?.reasoning?.[0] || '詳細な分析を実施中です。'}より具体的な質問をいただければ、詳細な回答をご提供できます。`;
+
+    } catch (error) {
+      console.error('AI response generation error:', error);
+      return `申し訳ございません。${stockSymbol}の最新データの取得に問題が発生しました。しばらく時間をおいてから再度お試しください。`;
+    }
   };
 
   const handleSendMessage = async (message: string = inputValue) => {
@@ -106,18 +176,30 @@ export const AIChat: React.FC<AIChatProps> = ({ stockSymbol }) => {
     setInputValue('');
     setIsLoading(true);
 
-    // AIの応答をシミュレート
-    setTimeout(() => {
+    try {
+      // AIの応答を非同期で取得
+      const aiResponse = await simulateAIResponse(message);
+      
       const aiMessage: ChatMessage = {
         id: (Date.now() + 1).toString(),
         type: 'ai',
-        content: simulateAIResponse(message),
+        content: aiResponse,
         timestamp: new Date()
       };
 
       setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error('Error generating AI response:', error);
+      const errorMessage: ChatMessage = {
+        id: (Date.now() + 1).toString(),
+        type: 'ai',
+        content: `申し訳ございません。回答の生成中にエラーが発生しました。再度お試しください。`,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
