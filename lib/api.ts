@@ -4,7 +4,14 @@
 import axios from 'axios';
 
 const getApiBaseUrl = () => {
-  const url = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+  // 本番環境でもプロキシを使用（Vercelでの安定性向上）
+  if (typeof window !== 'undefined') {
+    // ブラウザ環境の場合はプロキシを使用
+    return '/api/proxy';
+  }
+  
+  // サーバーサイドの場合は直接接続
+  const url = process.env.NEXT_PUBLIC_API_URL || 'https://stock-backend-production-4ff1.up.railway.app';
   // プロトコルが指定されていない場合はhttpsを追加
   if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
     return `https://${url}`;

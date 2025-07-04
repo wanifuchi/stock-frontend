@@ -1,14 +1,19 @@
 'use client';
 
 import React, { useState } from 'react';
+import { Sidebar } from '@/components/Sidebar';
+import { Header } from '@/components/Header';
+import { Dashboard } from '@/components/Dashboard';
 import { StockSearch } from '@/components/StockSearch';
-import { StockInfo } from '@/components/StockInfo';
 import { StockChart } from '@/components/StockChart';
-import { TechnicalIndicators } from '@/components/TechnicalIndicators';
-import { StockAnalysis } from '@/components/StockAnalysis';
-import { AnalysisProgressIndicator } from '@/components/AnalysisProgressIndicator';
+import { TechnicalAnalysis } from '@/components/TechnicalAnalysis';
+import { StockInfo } from '@/components/StockInfo';
 import { AIChat } from '@/components/AIChat';
 import { TradingSignals } from '@/components/TradingSignals';
+import { AnalysisProgressIndicator } from '@/components/AnalysisProgressIndicator';
+import { SignalAlert } from '@/components/SignalAlert';
+import { StockAnalysis } from '@/components/StockAnalysis';
+import { TechnicalIndicators } from '@/components/TechnicalIndicators';
 import { 
   stockAPI, 
   StockInfo as StockInfoType, 
@@ -16,247 +21,344 @@ import {
   TechnicalIndicators as TechnicalIndicatorsType, 
   StockAnalysis as StockAnalysisType 
 } from '@/lib/api';
-import { Card } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
-import { TrendingUp, BarChart3, Brain } from 'lucide-react';
 
 export default function Home() {
+  const [activeSection, setActiveSection] = useState('dashboard');
+  const [isDarkMode, setIsDarkMode] = useState(false);
   const [selectedSymbol, setSelectedSymbol] = useState<string>('');
-  const [stockInfo, setStockInfo] = useState<StockInfoType | null>(null);
-  const [priceHistory, setPriceHistory] = useState<StockPriceHistoryType | null>(null);
-  const [technicalIndicators, setTechnicalIndicators] = useState<TechnicalIndicatorsType | null>(null);
-  const [stockAnalysis, setStockAnalysis] = useState<StockAnalysisType | null>(null);
+  const [stockData, setStockData] = useState<any>(null);
+  const [technicalData, setTechnicalData] = useState<any>(null);
+  const [analysisData, setAnalysisData] = useState<any>(null);
+  const [priceHistory, setPriceHistory] = useState<any>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string>('');
-  const [showProgressIndicator, setShowProgressIndicator] = useState(false);
+  const [showProgress, setShowProgress] = useState(false);
   const [analysisProgress, setAnalysisProgress] = useState(0);
-  const [currentAnalysisStep, setCurrentAnalysisStep] = useState('');
+  const [currentStep, setCurrentStep] = useState('');
 
-  // デバッグ用：API URLを確認
-  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-  console.log('API URL:', apiUrl);
+  // 従来の型付きstate（既存コンポーネント互換性用）
+  const [stockInfo, setStockInfo] = useState<StockInfoType | null>(null);
+  const [technicalIndicators, setTechnicalIndicators] = useState<TechnicalIndicatorsType | null>(null);
+  const [stockAnalysis, setStockAnalysis] = useState<StockAnalysisType | null>(null);
 
-  const handleSelectStock = async (symbol: string) => {
-    // 全データを即座にクリア（再検索時の表示問題を防ぐ）
+  // テーマ切り替え
+  const toggleTheme = () => {
+    setIsDarkMode(!isDarkMode);
+    if (!isDarkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+  };
+
+  // 銘柄検索・選択ハンドラー
+  const handleSearchSelect = async (symbol: string) => {
+    // すべてのデータをクリア
+    setStockData(null);
     setStockInfo(null);
-    setPriceHistory(null);
+    setTechnicalData(null);
     setTechnicalIndicators(null);
+    setAnalysisData(null);
     setStockAnalysis(null);
-    
-    // 新しい銘柄を設定
-    setSelectedSymbol(symbol);
-    setShowProgressIndicator(true);
-    setIsLoading(true);
+    setPriceHistory(null);
     setError('');
+    setSelectedSymbol(symbol);
+    setShowProgress(true);
+    setIsLoading(true);
     setAnalysisProgress(0);
-    setCurrentAnalysisStep('fetch-data');
-
+    setCurrentStep('fetch-data');
+    
     try {
       // ステップ1: 基本情報を取得
-      setCurrentAnalysisStep('fetch-data');
+      setCurrentStep('fetch-data');
       const info = await stockAPI.getStockInfo(symbol);
+      setStockData(info);
       setStockInfo(info);
       setAnalysisProgress(25);
       
-      // ステップ2: テクニカル分析
-      setCurrentAnalysisStep('technical-analysis');
+      // ステップ2: テクニカル分析と価格履歴を並行取得
+      setCurrentStep('technical-analysis');
       const [history, indicators] = await Promise.all([
         stockAPI.getPriceHistory(symbol, '3mo'),
-        stockAPI.getTechnicalIndicators(symbol),
+        stockAPI.getTechnicalIndicators(symbol)
       ]);
       
       setPriceHistory(history);
+      setTechnicalData(indicators);
       setTechnicalIndicators(indicators);
       setAnalysisProgress(50);
       
       // ステップ3: AI分析実行
-      setCurrentAnalysisStep('ai-analysis');
+      setCurrentStep('ai-analysis');
       setAnalysisProgress(75);
       
       // ステップ4: 最終分析結果を取得
-      setCurrentAnalysisStep('generate-recommendation');
+      setCurrentStep('generate-recommendation');
       const analysis = await stockAPI.getStockAnalysis(symbol);
+      setAnalysisData(analysis);
       setStockAnalysis(analysis);
       setAnalysisProgress(100);
       
       // 完了後、短時間で非表示
       setTimeout(() => {
-        setShowProgressIndicator(false);
-      }, 300);
+        setShowProgress(false);
+        // ダッシュボードセクションに自動切り替え
+        if (activeSection !== 'dashboard') {
+          setActiveSection('dashboard');
+        }
+      }, 500);
       
     } catch (err) {
-      console.error('データ取得エラー:', err);
-      const errorMessage = err instanceof Error ? err.message : 'データの取得に失敗しました。';
-      setError(`エラー: ${errorMessage} (API URL: ${apiUrl})`);
-      setShowProgressIndicator(false);
+      console.error('株式データ取得エラー:', err);
+      setError(`${symbol} の情報を取得できませんでした`);
+      setShowProgress(false);
       setAnalysisProgress(0);
     } finally {
       setIsLoading(false);
     }
   };
 
-  return (
-    <div className="min-h-screen bg-background">
-      {/* ミニマルなヘッダー */}
-      <header className="border-b border-border/50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-        <div className="container max-w-7xl mx-auto px-6 lg:px-8">
-          <div className="flex h-16 items-center justify-between">
-            <div className="flex items-center space-x-3">
-              <div className="h-8 w-8 rounded-lg bg-primary flex items-center justify-center">
-                <TrendingUp className="h-5 w-5 text-primary-foreground" />
-              </div>
-              <div>
-                <h1 className="text-xl font-semibold tracking-tight">Stock Advisor</h1>
-                <p className="text-xs text-muted-foreground hidden sm:block">
-                  インテリジェント投資分析
-                </p>
-              </div>
-            </div>
-            <Badge variant="outline" className="hidden sm:flex">
-              <Brain className="h-3 w-3 mr-1" />
-              AI搭載
-            </Badge>
-          </div>
-        </div>
-      </header>
-
-      {/* ヒーローセクション */}
-      <section className="border-b border-border/50">
-        <div className="container max-w-7xl mx-auto px-6 lg:px-8 py-16 lg:py-24">
-          <div className="max-w-3xl mx-auto text-center">
-            <h2 className="text-4xl lg:text-6xl font-light tracking-tight mb-6">
-              次世代の<span className="font-medium bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-600 bg-clip-text text-transparent gradient-text-fallback">投資分析</span>
-            </h2>
-            <p className="text-lg text-muted-foreground mb-12 leading-relaxed">
-              テクニカル指標、市場センチメント、機関投資家ロジックを組み合わせた高度なAI分析により、精密な売買推奨を提供します。
-            </p>
-            
-            {/* エレガントな検索 */}
-            <div className="max-w-md mx-auto">
-              <StockSearch onSelectStock={handleSelectStock} />
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* メインコンテンツ */}
-      <main className="container max-w-7xl mx-auto px-6 lg:px-8 py-12">
-        {/* エラー表示 */}
-        {error && (
-          <Card className="mb-8 border-destructive/50 bg-destructive/5">
-            <div className="p-6">
-              <div className="flex items-center space-x-3">
-                <div className="h-2 w-2 rounded-full bg-destructive"></div>
-                <p className="text-sm text-destructive font-medium">{error}</p>
-              </div>
-            </div>
-          </Card>
-        )}
-
-        {/* 高度な分析進行インジケータ */}
-        {showProgressIndicator && (
-          <div className="py-12">
-            <AnalysisProgressIndicator 
-              symbol={selectedSymbol}
-              onComplete={() => setShowProgressIndicator(false)}
-              externalProgress={analysisProgress}
-              externalCurrentStep={currentAnalysisStep}
+  // セクション別のコンテンツをレンダリング
+  const renderContent = () => {
+    switch (activeSection) {
+      case 'dashboard':
+        return (
+          <div className="space-y-6">
+            <Dashboard 
+              selectedSymbol={selectedSymbol}
+              stockData={stockData}
+              technicalData={technicalData}
+              analysisData={analysisData}
             />
-          </div>
-        )}
-
-        {/* 中間結果の先行表示（インジケータ表示中でも部分結果を表示） */}
-        {selectedSymbol && !isLoading && showProgressIndicator && (stockInfo || technicalIndicators) && (
-          <div className="space-y-6 opacity-70">
-            <div className="text-center mb-4">
-              <p className="text-sm text-muted-foreground">
-                📊 分析中に取得済みデータを先行表示
-              </p>
-            </div>
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              <div className="xl:col-span-2 space-y-6">
-                {stockInfo && <StockInfo stockInfo={stockInfo} />}
-              </div>
-              <div className="space-y-6">
-                {technicalIndicators && (
-                  <TechnicalIndicators indicators={technicalIndicators} symbol={selectedSymbol} />
-                )}
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* モダンな株式データ表示 */}
-        {selectedSymbol && !isLoading && !showProgressIndicator && (
-          <div className="space-y-8">
-            {/* グリッドレイアウト - デスクトップで最適化 */}
-            <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
-              {/* メイン情報 - より大きなスペース */}
-              <div className="xl:col-span-2 space-y-6">
-                {stockInfo && <StockInfo stockInfo={stockInfo} />}
-                {priceHistory && <StockChart priceHistory={priceHistory} />}
-              </div>
-
-              {/* サイドパネル - 分析とテクニカル */}
-              <div className="space-y-6">
-                {stockAnalysis && <StockAnalysis analysis={stockAnalysis} />}
-                {technicalIndicators && (
-                  <TechnicalIndicators indicators={technicalIndicators} symbol={selectedSymbol} />
-                )}
-              </div>
-            </div>
-
-            {/* 高度な売買シグナル（全幅表示） */}
-            {stockAnalysis?.advanced_trading && (
-              <div className="mt-6">
-                <TradingSignals tradingData={stockAnalysis.advanced_trading} />
+            {selectedSymbol && stockData && stockInfo && (
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                <div className="lg:col-span-2">
+                  <StockInfo stockInfo={stockInfo} />
+                </div>
+                <div className="space-y-4">
+                  {analysisData?.advanced_trading && (
+                    <TradingSignals tradingData={analysisData.advanced_trading} />
+                  )}
+                </div>
               </div>
             )}
           </div>
-        )}
-
-        {/* 美しい空状態 */}
-        {!selectedSymbol && !isLoading && (
-          <div className="text-center py-24">
-            <div className="max-w-md mx-auto">
-              <div className="h-16 w-16 mx-auto mb-6 rounded-full bg-muted flex items-center justify-center">
-                <BarChart3 className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h2 className="text-2xl font-light tracking-tight mb-3">
-                分析の準備完了
+        );
+      
+      case 'search':
+        return (
+          <div className="max-w-2xl mx-auto py-12">
+            <div className="text-center mb-8">
+              <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-4">
+                銘柄検索
               </h2>
-              <p className="text-muted-foreground leading-relaxed">
-                上記に銘柄コードや企業名を入力して、AI搭載の投資分析を開始してください。
+              <p className="text-gray-600 dark:text-gray-400">
+                銘柄コードまたは企業名で検索して詳細分析を開始
               </p>
             </div>
+            <StockSearch 
+              onSelectStock={handleSearchSelect}
+              className="mb-8"
+              placeholder="例: AAPL, NVDA, Tesla..."
+            />
+            {error && (
+              <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+                <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+              </div>
+            )}
           </div>
-        )}
-
-        {/* AIチャット機能 */}
-        {selectedSymbol && !isLoading && !showProgressIndicator && stockAnalysis && (
-          <AIChat 
+        );
+      
+      case 'charts':
+        return selectedSymbol && stockData ? (
+          <div className="space-y-6">
+            <StockChart 
+              priceHistory={priceHistory}
+            />
+          </div>
+        ) : (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              価格チャート
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">
+              銘柄を選択して詳細チャートを表示
+            </p>
+            <StockSearch 
+              onSelectStock={handleSearchSelect}
+              className="max-w-md mx-auto"
+            />
+          </div>
+        );
+      
+      case 'technical':
+        return selectedSymbol && stockData ? (
+          <TechnicalAnalysis 
+            symbol={selectedSymbol}
+            indicators={technicalData}
+            currentPrice={stockData.current_price}
+          />
+        ) : (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              テクニカル分析
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">
+              銘柄を選択してテクニカル分析を開始
+            </p>
+            <StockSearch 
+              onSelectStock={handleSearchSelect}
+              className="max-w-md mx-auto"
+            />
+          </div>
+        );
+      
+      case 'signals':
+        return (
+          <SignalAlert selectedSymbol={selectedSymbol} />
+        );
+      
+      case 'ai-chat':
+        return selectedSymbol && stockData ? (
+          <AIChat
             stockSymbol={selectedSymbol}
             analysisData={{
-              stockInfo,
-              technicalIndicators,
-              stockAnalysis
+              stockInfo: stockData,
+              technicalIndicators: technicalData,
+              stockAnalysis: analysisData
             }}
           />
-        )}
-      </main>
-
-      {/* ミニマルなフッター */}
-      <footer className="border-t border-border/50 mt-24">
-        <div className="container max-w-7xl mx-auto px-6 lg:px-8 py-12">
-          <div className="text-center">
-            <p className="text-sm text-muted-foreground">
-              このプラットフォームは分析情報を提供するものであり、投資助言として解釈されるべきではありません。
-              <br className="hidden sm:block" />
-              投資判断を行う前に、ご自身で調査を行い、金融アドバイザーにご相談ください。
+        ) : (
+          <div className="text-center py-12">
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-white mb-4">
+              AI投資アドバイザー
+            </h2>
+            <p className="text-gray-600 dark:text-gray-400 mb-8">
+              銘柄を選択してAIアドバイザーに相談
             </p>
+            <StockSearch 
+              onSelectStock={handleSearchSelect}
+              className="max-w-md mx-auto"
+            />
           </div>
-        </div>
-      </footer>
+        );
+
+      // 従来のレイアウトも保持（従来のコンポーネント使用）
+      case 'legacy':
+        return (
+          <div className="space-y-8">
+            {/* 既存のエレガントなレイアウト */}
+            <div className="max-w-3xl mx-auto text-center">
+              <h2 className="text-4xl lg:text-6xl font-light tracking-tight mb-6">
+                次世代の<span className="font-medium bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 dark:from-blue-400 dark:via-purple-400 dark:to-blue-600 bg-clip-text text-transparent gradient-text-fallback">投資分析</span>
+              </h2>
+              <div className="max-w-md mx-auto mb-8">
+                <StockSearch onSelectStock={handleSearchSelect} />
+              </div>
+            </div>
+
+            {/* 分析進行インジケータ */}
+            {showProgress && (
+              <div className="py-12">
+                <AnalysisProgressIndicator 
+                  symbol={selectedSymbol}
+                  onComplete={() => setShowProgress(false)}
+                  externalProgress={analysisProgress}
+                  externalCurrentStep={currentStep}
+                />
+              </div>
+            )}
+
+            {/* データ表示 */}
+            {selectedSymbol && !isLoading && !showProgress && (
+              <div className="space-y-8">
+                <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                  <div className="xl:col-span-2 space-y-6">
+                    {stockInfo && <StockInfo stockInfo={stockInfo} />}
+                    {priceHistory && <StockChart priceHistory={priceHistory} />}
+                  </div>
+                  <div className="space-y-6">
+                    {stockAnalysis && <StockAnalysis analysis={stockAnalysis} />}
+                    {technicalIndicators && (
+                      <TechnicalIndicators indicators={technicalIndicators} symbol={selectedSymbol} />
+                    )}
+                  </div>
+                </div>
+                {stockAnalysis?.advanced_trading && (
+                  <TradingSignals tradingData={stockAnalysis.advanced_trading} />
+                )}
+              </div>
+            )}
+
+            {/* AIチャット */}
+            {selectedSymbol && !isLoading && !showProgress && stockAnalysis && (
+              <AIChat 
+                stockSymbol={selectedSymbol}
+                analysisData={{
+                  stockInfo,
+                  technicalIndicators,
+                  stockAnalysis
+                }}
+              />
+            )}
+          </div>
+        );
+      
+      default:
+        return (
+          <Dashboard 
+            selectedSymbol={selectedSymbol}
+            stockData={stockData}
+            technicalData={technicalData}
+            analysisData={analysisData}
+          />
+        );
+    }
+  };
+
+  return (
+    <div className="flex h-screen bg-gray-50 dark:bg-gray-900">
+      {/* サイドバー */}
+      <Sidebar 
+        activeSection={activeSection} 
+        onSectionChange={setActiveSection} 
+      />
+      
+      {/* メインコンテンツ */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* ヘッダー */}
+        <Header 
+          onSearch={handleSearchSelect}
+          onToggleTheme={toggleTheme}
+          isDarkMode={isDarkMode}
+          notifications={3}
+        />
+        
+        {/* メインコンテンツエリア */}
+        <main className="flex-1 overflow-y-auto p-6">
+          {/* プログレスインジケーター */}
+          {showProgress && (
+            <div className="py-12">
+              <AnalysisProgressIndicator 
+                symbol={selectedSymbol}
+                onComplete={() => setShowProgress(false)}
+                externalProgress={analysisProgress}
+                externalCurrentStep={currentStep}
+              />
+            </div>
+          )}
+          
+          {/* エラー表示 */}
+          {error && (
+            <div className="mb-8 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-lg">
+              <p className="text-red-700 dark:text-red-300 text-sm">{error}</p>
+            </div>
+          )}
+
+          {/* メインコンテンツ */}
+          {!showProgress && !isLoading && renderContent()}
+        </main>
+      </div>
     </div>
   );
 }

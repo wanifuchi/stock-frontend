@@ -12,13 +12,17 @@ import { useDebounce } from '@/hooks/useDebounce';
 
 interface StockSearchProps {
   onSelectStock: (symbol: string) => void;
+  className?: string;
+  placeholder?: string;
 }
 
-export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
+export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock, className, placeholder = "銘柄コードまたは企業名を入力" }) => {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<StockSearchResult[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const [selectedIndex, setSelectedIndex] = useState(-1);
+  const [hasSearched, setHasSearched] = useState(false);
   
   // Geminiの提案：debounce機能でリアルタイム検索
   const debouncedQuery = useDebounce(query, 300);
@@ -29,18 +33,23 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
       if (!debouncedQuery.trim()) {
         setResults([]);
         setShowDropdown(false);
+        setHasSearched(false);
+        setSelectedIndex(-1);
         return;
       }
 
       if (debouncedQuery.length < 2) return; // 最低2文字で検索
 
       setIsLoading(true);
+      setHasSearched(false);
       try {
         console.log('検索実行:', debouncedQuery); // デバッグログ
         const data = await stockAPI.searchStocks(debouncedQuery);
         console.log('検索結果:', data); // デバッグログ
         setResults(data.results);
-        setShowDropdown(data.results.length > 0);
+        setShowDropdown(true);
+        setHasSearched(true);
+        setSelectedIndex(-1); // リセット
       } catch (error) {
         console.error('リアルタイム検索エラー:', error);
         // エラー詳細をデバッグ出力
@@ -49,6 +58,7 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
         }
         setResults([]);
         setShowDropdown(false);
+        setHasSearched(true);
       } finally {
         setIsLoading(false);
       }
@@ -75,7 +85,24 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
-      handleSearch();
+      if (selectedIndex >= 0 && results[selectedIndex]) {
+        handleSelectStock(results[selectedIndex].symbol);
+      } else {
+        handleSearch();
+      }
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      if (results.length > 0) {
+        setSelectedIndex(prev => prev < results.length - 1 ? prev + 1 : 0);
+      }
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      if (results.length > 0) {
+        setSelectedIndex(prev => prev > 0 ? prev - 1 : results.length - 1);
+      }
+    } else if (e.key === 'Escape') {
+      setShowDropdown(false);
+      setSelectedIndex(-1);
     }
   };
 
@@ -98,7 +125,7 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
   };
 
   return (
-    <div className="relative w-full">
+    <div className={cn("relative w-full", className)}>
       <div className="group relative">
         <div className="absolute inset-y-0 left-0 flex items-center pl-4 pointer-events-none">
           <Search className="h-5 w-5 text-muted-foreground group-focus-within:text-primary transition-colors" />
@@ -110,7 +137,7 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
           onKeyPress={handleKeyPress}
           onBlur={handleInputBlur}
           onFocus={handleInputFocus}
-          placeholder="銘柄コード、ETF、企業名を検索..."
+          placeholder={placeholder}
           className={cn(
             "pl-12 h-12 text-base bg-background/50 border-border/50",
             "focus:bg-background focus:border-primary/50",
@@ -135,38 +162,51 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock }) => {
       </div>
 
       {/* エレガントな検索結果ドロップダウン */}
-      {showDropdown && results.length > 0 && (
+      {showDropdown && (
         <Card className="absolute z-50 w-full mt-2 shadow-xl border-border/50">
           <CardContent className="p-0">
-            <div className="max-h-80 overflow-y-auto">
-              {results.map((result, index) => (
-                <button
-                  key={result.symbol}
-                  onClick={() => handleSelectStock(result.symbol)}
-                  className={cn(
-                    "w-full px-4 py-3 text-left transition-colors",
-                    "hover:bg-muted/50 focus:bg-muted/50 focus:outline-none",
-                    index !== results.length - 1 && "border-b border-border/30"
-                  )}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex flex-col">
-                      <div className="flex items-center space-x-2">
-                        <span className="font-semibold text-sm tracking-wide">
-                          {result.symbol}
+            {results.length > 0 ? (
+              <div className="max-h-80 overflow-y-auto">
+                {results.map((result, index) => (
+                  <button
+                    key={result.symbol}
+                    onClick={() => handleSelectStock(result.symbol)}
+                    className={cn(
+                      "w-full px-4 py-3 text-left transition-colors",
+                      "hover:bg-muted/50 focus:bg-muted/50 focus:outline-none",
+                      selectedIndex === index && "bg-primary/10",
+                      index !== results.length - 1 && "border-b border-border/30"
+                    )}
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex flex-col">
+                        <div className="flex items-center space-x-2">
+                          <span className="font-semibold text-sm tracking-wide">
+                            {result.symbol}
+                          </span>
+                          <Badge variant="outline" className="h-5 text-xs">
+                            {result.exchange}
+                          </Badge>
+                        </div>
+                        <span className="text-sm text-muted-foreground truncate max-w-xs">
+                          {result.name}
                         </span>
-                        <Badge variant="outline" className="h-5 text-xs">
-                          {result.exchange}
-                        </Badge>
                       </div>
-                      <span className="text-sm text-muted-foreground truncate max-w-xs">
-                        {result.name}
-                      </span>
                     </div>
+                  </button>
+                ))}
+              </div>
+            ) : (
+              hasSearched && !isLoading && (
+                <div className="px-4 py-6 text-center">
+                  <div className="text-muted-foreground">
+                    <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                    <p className="text-sm">該当する銘柄が見つかりません</p>
+                    <p className="text-xs mt-1">別のキーワードで検索してください</p>
                   </div>
-                </button>
-              ))}
-            </div>
+                </div>
+              )
+            )}
           </CardContent>
         </Card>
       )}
