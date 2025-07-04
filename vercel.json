@@ -1,5 +1,8 @@
 {
   "env": {
     "NEXT_PUBLIC_API_URL": "https://stock-backend-production-4ff1.up.railway.app"
-  }
+  },
+  "buildCommand": "npm run build",
+  "outputDirectory": ".next",
+  "framework": "nextjs"
 }
