@@ -14,6 +14,9 @@ import { AnalysisProgressIndicator } from '@/components/AnalysisProgressIndicato
 import { SignalAlert } from '@/components/SignalAlert';
 import { StockAnalysis } from '@/components/StockAnalysis';
 import { TechnicalIndicators } from '@/components/TechnicalIndicators';
+import { PortfolioTracker } from '@/components/PortfolioTracker';
+import { WatchList } from '@/components/WatchList';
+import { MarketOverview } from '@/components/MarketOverview';
 import { 
   stockAPI, 
   StockInfo as StockInfoType, 
@@ -216,6 +219,21 @@ export default function Home() {
       case 'signals':
         return (
           <SignalAlert selectedSymbol={selectedSymbol} />
+        );
+      
+      case 'portfolio':
+        return (
+          <PortfolioTracker />
+        );
+      
+      case 'watchlist':
+        return (
+          <WatchList />
+        );
+      
+      case 'market':
+        return (
+          <MarketOverview />
         );
       
       case 'ai-chat':

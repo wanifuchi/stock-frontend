@@ -13,7 +13,11 @@ import {
   Target,
   Shield,
   BookOpen,
-  Home
+  Home,
+  Star,
+  Globe,
+  Zap,
+  Bot
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -27,12 +31,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange
     { id: 'search', label: '銘柄検索', icon: Search },
     { id: 'charts', label: '価格チャート', icon: BarChart3 },
     { id: 'technical', label: 'テクニカル分析', icon: Activity },
-    { id: 'signals', label: 'トレーディングシグナル', icon: AlertCircle },
-    { id: 'ai-chat', label: 'AI相談', icon: BookOpen },
-    { id: 'legacy', label: '従来レイアウト', icon: Settings },
-    { id: 'timing', label: '売買タイミング', icon: Target },
-    { id: 'risk', label: 'リスク分析', icon: Shield },
-    { id: 'performance', label: 'パフォーマンス', icon: PieChart }
+    { id: 'signals', label: 'シグナル', icon: Zap },
+    { id: 'portfolio', label: 'ポートフォリオ', icon: PieChart },
+    { id: 'watchlist', label: 'ウォッチリスト', icon: Star },
+    { id: 'market', label: 'マーケット概況', icon: Globe },
+    { id: 'ai-chat', label: 'AIアドバイザー', icon: Bot },
   ];
 
   return (
