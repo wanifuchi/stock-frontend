@@ -36,6 +36,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange
     { id: 'watchlist', label: 'ウォッチリスト', icon: Star },
     { id: 'market', label: 'マーケット概況', icon: Globe },
     { id: 'ai-chat', label: 'AIアドバイザー', icon: Bot },
+    { id: 'api-status', label: 'API状態', icon: Activity },
   ];
 
   return (

@@ -17,6 +17,7 @@ import { TechnicalIndicators } from '@/components/TechnicalIndicators';
 import { PortfolioTracker } from '@/components/PortfolioTracker';
 import { WatchList } from '@/components/WatchList';
 import { MarketOverview } from '@/components/MarketOverview';
+import { APIStatus } from '@/components/APIStatus';
 import { 
   stockAPI, 
   StockInfo as StockInfoType, 
@@ -234,6 +235,11 @@ export default function Home() {
       case 'market':
         return (
           <MarketOverview />
+        );
+      
+      case 'api-status':
+        return (
+          <APIStatus />
         );
       
       case 'ai-chat':
