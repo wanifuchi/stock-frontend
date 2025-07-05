@@ -97,14 +97,14 @@ export class MarketAlertService {
       const response = await fetch('/api/stock/market-overview');
       const marketData = await response.json();
       
-      const vixData = marketData.find((item: MarketData) => item.symbol === 'VIX');
-      
-      interface MarketData {
+      interface MarketDataItem {
         symbol: string;
         value: number;
         change: number;
         changePercent: number;
       }
+      
+      const vixData = marketData.find((item: MarketDataItem) => item.symbol === 'VIX');
       if (!vixData) throw new Error('VIX data not found');
 
       const vix = vixData.value;
@@ -271,7 +271,7 @@ export class MarketAlertService {
       const volatilityMeasures: number[] = [];
 
       indices.forEach(index => {
-        const indexData = marketData.find((item: MarketData) => item.symbol === index);
+        const indexData = marketData.find((item: MarketDataItem) => item.symbol === index);
         if (indexData) {
           volatilityMeasures.push(Math.abs(indexData.changePercent));
         }
