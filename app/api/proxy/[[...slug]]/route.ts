@@ -2,19 +2,27 @@ import { NextRequest, NextResponse } from 'next/server';
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'https://stock-backend-production-4ff1.up.railway.app';
 
-export async function GET(request: NextRequest, { params }: { params: { slug?: string[] } }) {
+interface RouteParams {
+  params: Promise<{ slug?: string[] }>;
+}
+
+export async function GET(request: NextRequest, context: RouteParams) {
+  const params = await context.params;
   return handleRequest(request, params, 'GET');
 }
 
-export async function POST(request: NextRequest, { params }: { params: { slug?: string[] } }) {
+export async function POST(request: NextRequest, context: RouteParams) {
+  const params = await context.params;
   return handleRequest(request, params, 'POST');
 }
 
-export async function PUT(request: NextRequest, { params }: { params: { slug?: string[] } }) {
+export async function PUT(request: NextRequest, context: RouteParams) {
+  const params = await context.params;
   return handleRequest(request, params, 'PUT');
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { slug?: string[] } }) {
+export async function DELETE(request: NextRequest, context: RouteParams) {
+  const params = await context.params;
   return handleRequest(request, params, 'DELETE');
 }
 
