@@ -267,6 +267,13 @@ export class MarketAlertService {
       const response = await fetch('/api/stock/market-overview');
       const marketData = await response.json();
 
+      interface MarketDataItem {
+        symbol: string;
+        value: number;
+        change: number;
+        changePercent: number;
+      }
+
       const indices = ['S&P 500', 'NASDAQ', 'DOW'];
       const volatilityMeasures: number[] = [];
 
