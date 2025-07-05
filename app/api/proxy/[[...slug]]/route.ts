@@ -32,6 +32,8 @@ async function handleRequest(
     const backendUrl = `${BACKEND_URL}/${path}${searchParams ? `?${searchParams}` : ''}`;
     
     console.log(`プロキシリクエスト: ${method} ${backendUrl}`);
+    console.log(`リクエストパス: ${path}`);
+    console.log(`検索パラメータ: ${searchParams}`);
     
     // リクエストボディの取得（POST/PUT の場合）
     let body = null;
