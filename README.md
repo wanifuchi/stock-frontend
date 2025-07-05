@@ -45,15 +45,17 @@ NEXT_PUBLIC_API_URL=https://stock-backend-production-4ff1.up.railway.app
 ```
 
 ## 📅 最新の更新
+- 2025-07-05: AIトレーディングシグナル実装完了・Git自動デプロイ設定
+- 2025-07-05: 市場アラートシステム・リアルタイム更新機能追加
 - 2025-07-04: 高度な投資管理機能を追加（ポートフォリオ、ウォッチリスト、市場概況）
 - 2025-07-04: Vercelデプロイ対応とRailwayバックエンド完全統合
-- 2025-06-30: 強化分析エンジン統合とUI/UX改善
 
 ## 🚀 デプロイ
 
 ### Vercel (推奨)
 - **本番環境**: https://stock-frontend-clean.vercel.app
-- GitHubにプッシュすると自動的にビルド・デプロイされます
+- **Git自動デプロイ**: mainブランチへのプッシュで自動ビルド・デプロイ
+- **GitHub統合**: https://github.com/wanifuchi/stock-frontend.git と連携済み
 - 環境変数はVercelダッシュボードで設定済み
 
 ### Railway バックエンド
