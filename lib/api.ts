@@ -4,19 +4,9 @@
 import axios from 'axios';
 
 const getApiBaseUrl = () => {
-  // 本番環境でもプロキシを使用（Vercelでの安定性向上）
-  if (typeof window !== 'undefined') {
-    // ブラウザ環境の場合はプロキシを使用
-    return '/api/proxy';
-  }
-  
-  // サーバーサイドの場合は直接接続
-  const url = process.env.NEXT_PUBLIC_API_URL || 'https://stock-backend-production-4ff1.up.railway.app';
-  // プロトコルが指定されていない場合はhttpsを追加
-  if (url && !url.startsWith('http://') && !url.startsWith('https://')) {
-    return `https://${url}`;
-  }
-  return url;
+  // 常にプロキシを使用（クライアント・サーバーサイド共通）
+  // Vercelのサーバーレス環境では外部APIに直接アクセスできない場合があるため
+  return '/api/proxy';
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -152,6 +142,21 @@ export interface StockAnalysis {
   };
 }
 
+export interface MarketData {
+  symbol: string;
+  value: number;
+  change: number;
+  changePercent: number;
+}
+
+export interface TopMover {
+  symbol: string;
+  name: string;
+  price: number;
+  change: number;
+  changePercent: number;
+}
+
 // API関数
 export const stockAPI = {
   // 株式銘柄を検索
@@ -192,5 +197,86 @@ export const stockAPI = {
   checkHealth: async (): Promise<{ status: string; timestamp: string; service: string }> => {
     const response = await apiClient.get('/health');
     return response.data;
+  },
+
+  // 市場概況データを取得（主要指数）
+  getMarketOverview: async (): Promise<MarketData[]> => {
+    try {
+      // 主要指数のリアルタイムデータを取得
+      const symbols = ['^GSPC', '^IXIC', '^DJI', '^VIX']; // S&P500, NASDAQ, DOW, VIX
+      const results = await Promise.all(
+        symbols.map(async (symbol) => {
+          try {
+            const data = await apiClient.get(`/stocks/${symbol}`);
+            return {
+              symbol: symbol === '^GSPC' ? 'S&P 500' : 
+                     symbol === '^IXIC' ? 'NASDAQ' :
+                     symbol === '^DJI' ? 'DOW' : 'VIX',
+              value: data.data.current_price,
+              change: data.data.change,
+              changePercent: data.data.change_percent
+            };
+          } catch (error) {
+            // 個別の銘柄でエラーが発生した場合はデフォルト値を返す
+            return {
+              symbol: symbol === '^GSPC' ? 'S&P 500' : 
+                     symbol === '^IXIC' ? 'NASDAQ' :
+                     symbol === '^DJI' ? 'DOW' : 'VIX',
+              value: 0,
+              change: 0,
+              changePercent: 0
+            };
+          }
+        })
+      );
+      return results;
+    } catch (error) {
+      console.error('市場概況データ取得エラー:', error);
+      // フォールバック用のデモデータ
+      return [
+        { symbol: 'S&P 500', value: 4856.23, change: 23.45, changePercent: 0.48 },
+        { symbol: 'NASDAQ', value: 15234.67, change: 89.12, changePercent: 0.59 },
+        { symbol: 'DOW', value: 37543.89, change: -45.67, changePercent: -0.12 },
+        { symbol: 'VIX', value: 12.34, change: -0.87, changePercent: -6.58 }
+      ];
+    }
+  },
+
+  // 注目銘柄（トップムーバー）を取得
+  getTopMovers: async (): Promise<TopMover[]> => {
+    try {
+      // 主要銘柄のデータを取得
+      const symbols = ['NVDA', 'TSLA', 'AAPL', 'META', 'GOOGL', 'MSFT'];
+      const results = await Promise.all(
+        symbols.map(async (symbol) => {
+          try {
+            const data = await apiClient.get(`/stocks/${symbol}`);
+            return {
+              symbol: data.data.symbol,
+              name: data.data.name,
+              price: data.data.current_price,
+              change: data.data.change,
+              changePercent: data.data.change_percent
+            };
+          } catch (error) {
+            return null;
+          }
+        })
+      );
+      // nullを除外してソート（変動率の絶対値で降順）
+      return results
+        .filter((item): item is TopMover => item !== null)
+        .sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent))
+        .slice(0, 4); // 上位4つ
+    } catch (error) {
+      console.error('注目銘柄データ取得エラー:', error);
+      // フォールバック用のデモデータ
+      return [
+        { symbol: 'NVDA', name: 'NVIDIA Corporation', price: 875.43, change: 34.56, changePercent: 4.12 },
+        { symbol: 'TSLA', name: 'Tesla Inc', price: 267.89, change: 12.34, changePercent: 4.84 },
+        { symbol: 'AAPL', name: 'Apple Inc', price: 182.34, change: -2.45, changePercent: -1.33 },
+        { symbol: 'META', name: 'Meta Platforms', price: 423.67, change: 8.90, changePercent: 2.14 }
+      ];
+    }
   },
 };

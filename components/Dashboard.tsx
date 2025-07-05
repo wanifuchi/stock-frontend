@@ -15,6 +15,7 @@ import {
   RefreshCw
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { stockAPI, MarketData, TopMover } from '@/lib/api';
 
 interface DashboardProps {
   selectedSymbol?: string;
@@ -30,32 +31,50 @@ export const Dashboard: React.FC<DashboardProps> = ({
   analysisData
 }) => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
+  const [marketData, setMarketData] = useState<MarketData[]>([]);
+  const [topMovers, setTopMovers] = useState<TopMover[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // 市場データを取得する関数
+  const fetchMarketData = async () => {
+    try {
+      setIsLoading(true);
+      const [marketOverview, movers] = await Promise.all([
+        stockAPI.getMarketOverview(),
+        stockAPI.getTopMovers()
+      ]);
+      setMarketData(marketOverview);
+      setTopMovers(movers);
+      setLastUpdate(new Date());
+    } catch (error) {
+      console.error('市場データ取得エラー:', error);
+      // エラー時はデモデータを使用
+      setMarketData([
+        { symbol: 'S&P 500', value: 4856.23, change: 23.45, changePercent: 0.48 },
+        { symbol: 'NASDAQ', value: 15234.67, change: 89.12, changePercent: 0.59 },
+        { symbol: 'DOW', value: 37543.89, change: -45.67, changePercent: -0.12 },
+        { symbol: 'VIX', value: 12.34, change: -0.87, changePercent: -6.58 }
+      ]);
+      setTopMovers([
+        { symbol: 'NVDA', name: 'NVIDIA Corporation', price: 875.43, change: 34.56, changePercent: 4.12 },
+        { symbol: 'TSLA', name: 'Tesla Inc', price: 267.89, change: 12.34, changePercent: 4.84 },
+        { symbol: 'AAPL', name: 'Apple Inc', price: 182.34, change: -2.45, changePercent: -1.33 },
+        { symbol: 'META', name: 'Meta Platforms', price: 423.67, change: 8.90, changePercent: 2.14 }
+      ]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    // 初期設定
-    setLastUpdate(new Date());
+    // 初期データ取得
+    fetchMarketData();
     
-    const timer = setInterval(() => {
-      setLastUpdate(new Date());
-    }, 30000); // 30秒ごとに更新時刻を更新
+    // 30秒ごとに更新
+    const timer = setInterval(fetchMarketData, 30000);
 
     return () => clearInterval(timer);
   }, []);
-
-  // デモデータ（実際のデータがない場合）
-  const demoMarketData = [
-    { symbol: 'S&P 500', value: 4856.23, change: 23.45, changePercent: 0.48 },
-    { symbol: 'NASDAQ', value: 15234.67, change: 89.12, changePercent: 0.59 },
-    { symbol: 'DOW', value: 37543.89, change: -45.67, changePercent: -0.12 },
-    { symbol: 'VIX', value: 12.34, change: -0.87, changePercent: -6.58 }
-  ];
-
-  const demoTopMovers = [
-    { symbol: 'NVDA', name: 'NVIDIA Corporation', price: 875.43, change: 34.56, changePercent: 4.12 },
-    { symbol: 'TSLA', name: 'Tesla Inc', price: 267.89, change: 12.34, changePercent: 4.84 },
-    { symbol: 'AAPL', name: 'Apple Inc', price: 182.34, change: -2.45, changePercent: -1.33 },
-    { symbol: 'META', name: 'Meta Platforms', price: 423.67, change: 8.90, changePercent: 2.14 }
-  ];
 
   const demoSignals = [
     { type: 'BUY', symbol: 'NVDA', confidence: 85, reason: 'テクニカルブレイクアウト' },
@@ -79,8 +98,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <p className="text-sm text-gray-500 dark:text-gray-400">
             最終更新: {lastUpdate ? lastUpdate.toLocaleTimeString('ja-JP') : '--:--:--'}
           </p>
-          <Button variant="outline" size="sm">
-            <RefreshCw className="w-4 h-4 mr-2" />
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={fetchMarketData}
+            disabled={isLoading}
+          >
+            <RefreshCw className={cn("w-4 h-4 mr-2", isLoading && "animate-spin")} />
             更新
           </Button>
         </div>
@@ -88,7 +112,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
 
       {/* 市場概況 */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-        {demoMarketData.map((item, index) => (
+        {marketData.map((item, index) => (
           <Card key={index}>
             <CardContent className="p-4">
               <div className="flex items-center justify-between">
@@ -193,7 +217,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {demoTopMovers.map((stock, index) => (
+                {topMovers.map((stock, index) => (
                   <div key={index} className="flex items-center justify-between p-3 rounded-lg bg-gray-50 dark:bg-gray-800">
                     <div className="flex items-center space-x-3">
                       <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-lg flex items-center justify-center">
