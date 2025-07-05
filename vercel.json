@@ -1,8 +1,14 @@
 {
   "env": {
-    "NEXT_PUBLIC_API_URL": "https://stock-backend-production-4ff1.up.railway.app"
+    "NEXT_PUBLIC_API_URL": "https://stock-backend-production-4ff1.up.railway.app",
+    "RAILWAY_API_URL": "https://stock-backend-production-4ff1.up.railway.app"
   },
   "buildCommand": "npm run build",
   "outputDirectory": ".next",
-  "framework": "nextjs"
+  "framework": "nextjs",
+  "functions": {
+    "app/api/stock/**": {
+      "maxDuration": 30
+    }
+  }
 }

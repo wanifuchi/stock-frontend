@@ -49,11 +49,11 @@ export const Sidebar: React.FC<SidebarProps> = ({ activeSection, onSectionChange
           </div>
           <div>
             <h1 className="text-xl font-bold text-gray-900 dark:text-white">
-              TradePro
+              Stock Analyzer
             </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
+            {/* <p className="text-sm text-gray-500 dark:text-gray-400">
               Advanced Trading
-            </p>
+            </p> */}
           </div>
         </div>
       </div>

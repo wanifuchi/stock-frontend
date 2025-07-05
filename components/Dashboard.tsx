@@ -5,8 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
-  TrendingUp, 
-  TrendingDown, 
   DollarSign, 
   Activity, 
   BarChart3,
@@ -16,40 +14,59 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { stockAPI, MarketData, TopMover } from '@/lib/api';
+import { MarketAlertService, MarketAlert } from '@/lib/market-alert-service';
+import { TradingSignal } from '@/lib/technical-analysis';
+
+interface StockData {
+  symbol: string;
+  name: string;
+  current_price: number;
+  change: number;
+  change_percent: number;
+  high: number;
+  low: number;
+  volume: number;
+}
 
 interface DashboardProps {
   selectedSymbol?: string;
-  stockData?: any;
-  technicalData?: any;
-  analysisData?: any;
+  stockData?: StockData;
+  technicalData?: Record<string, unknown>;
+  analysisData?: Record<string, unknown>;
 }
 
 export const Dashboard: React.FC<DashboardProps> = ({
   selectedSymbol,
-  stockData,
-  technicalData,
-  analysisData
+  stockData
 }) => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [marketData, setMarketData] = useState<MarketData[]>([
+  const [, setMarketData] = useState<MarketData[]>([
     { symbol: 'S&P 500', value: 0, change: 0, changePercent: 0 },
     { symbol: 'NASDAQ', value: 0, change: 0, changePercent: 0 },
     { symbol: 'DOW', value: 0, change: 0, changePercent: 0 },
     { symbol: 'VIX', value: 0, change: 0, changePercent: 0 }
   ]);
   const [topMovers, setTopMovers] = useState<TopMover[]>([]);
+  const [marketAlerts, setMarketAlerts] = useState<MarketAlert[]>([]);
+  const [tradingSignals, setTradingSignals] = useState<TradingSignal[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // 市場データを取得する関数
   const fetchMarketData = async () => {
     try {
       setIsLoading(true);
-      const [marketOverview, movers] = await Promise.all([
+      const [marketOverview, movers, alerts] = await Promise.all([
         stockAPI.getMarketOverview(),
-        stockAPI.getTopMovers()
+        stockAPI.getTopMovers(),
+        MarketAlertService.generateMarketAlerts()
       ]);
       setMarketData(marketOverview);
       setTopMovers(movers);
+      setMarketAlerts(alerts);
+      
+      // 注目銘柄のトレーディングシグナルを生成
+      await generateTradingSignals(movers.slice(0, 3));
+      
       setLastUpdate(new Date());
     } catch (error) {
       console.error('市場データ取得エラー:', error);
@@ -66,6 +83,34 @@ export const Dashboard: React.FC<DashboardProps> = ({
         { symbol: 'AAPL', name: 'Apple Inc', price: 227.52, change: -1.23, changePercent: -0.54 },
         { symbol: 'META', name: 'Meta Platforms Inc', price: 568.73, change: 8.45, changePercent: 1.51 }
       ]);
+      
+      // エラー時も基本的なアラートとシグナルを生成
+      setMarketAlerts([
+        {
+          id: 'fallback-vix',
+          type: 'WARNING',
+          category: 'VOLATILITY',
+          title: 'VIX上昇中',
+          description: '市場のボラティリティが増加しています',
+          timestamp: new Date().toISOString(),
+          priority: 6
+        },
+        {
+          id: 'fallback-sector',
+          type: 'INFO',
+          category: 'SECTOR',
+          title: 'セクターローテーション',
+          description: 'テクノロジー株から金融株への資金移動',
+          timestamp: new Date().toISOString(),
+          priority: 5
+        }
+      ]);
+      
+      setTradingSignals([
+        { type: 'BUY', symbol: 'NVDA', confidence: 85, reason: 'テクニカルブレイクアウト', strength: 80, indicators: { rsi: { value: 35, signal: 'BUY' }, macd: { value: 1.2, signal: 'BUY' }, bollinger: { position: 'LOWER', signal: 'BUY' }, moving_average: { signal: 'BUY' }, volume: { signal: 'HIGH' } } },
+        { type: 'SELL', symbol: 'AAPL', confidence: 78, reason: '利確ゾーン到達', strength: 65, indicators: { rsi: { value: 75, signal: 'SELL' }, macd: { value: -0.8, signal: 'SELL' }, bollinger: { position: 'UPPER', signal: 'SELL' }, moving_average: { signal: 'SELL' }, volume: { signal: 'NORMAL' } } },
+        { type: 'HOLD', symbol: 'MSFT', confidence: 72, reason: 'レンジ相場継続', strength: 50, indicators: { rsi: { value: 55, signal: 'NEUTRAL' }, macd: { value: 0.1, signal: 'NEUTRAL' }, bollinger: { position: 'MIDDLE', signal: 'NEUTRAL' }, moving_average: { signal: 'NEUTRAL' }, volume: { signal: 'NORMAL' } } }
+      ]);
     } finally {
       setIsLoading(false);
     }
@@ -76,16 +121,73 @@ export const Dashboard: React.FC<DashboardProps> = ({
     fetchMarketData();
     
     // 30秒ごとに更新
-    const timer = setInterval(fetchMarketData, 30000);
+    const timer = setInterval(() => {
+      console.log('リアルタイム更新実行中...');
+      fetchMarketData();
+    }, 30000);
 
     return () => clearInterval(timer);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const demoSignals = [
-    { type: 'BUY', symbol: 'NVDA', confidence: 85, reason: 'テクニカルブレイクアウト' },
-    { type: 'SELL', symbol: 'AAPL', confidence: 78, reason: '利確ゾーン到達' },
-    { type: 'HOLD', symbol: 'MSFT', confidence: 72, reason: 'レンジ相場継続' }
-  ];
+  // リアルタイムアラート更新（1分ごと）
+  useEffect(() => {
+    const alertTimer = setInterval(async () => {
+      try {
+        console.log('アラート更新中...');
+        const alerts = await MarketAlertService.generateMarketAlerts();
+        setMarketAlerts(alerts);
+      } catch (error) {
+        console.error('アラート更新エラー:', error);
+      }
+    }, 60000); // 1分ごと
+
+    return () => clearInterval(alertTimer);
+  }, []);
+
+  // selectedSymbolが変更された時のシグナル更新
+  useEffect(() => {
+    if (selectedSymbol && stockData) {
+      // 選択された銘柄の詳細シグナルを生成
+      generateTradingSignals([{
+        symbol: selectedSymbol,
+        name: stockData.name || selectedSymbol,
+        price: stockData.current_price || 0,
+        change: stockData.change || 0,
+        changePercent: stockData.change_percent || 0
+      }]);
+    }
+  }, [selectedSymbol, stockData]);
+
+  // トレーディングシグナルを生成する関数
+  const generateTradingSignals = async (stocks: TopMover[]) => {
+    const signals: TradingSignal[] = [];
+    
+    for (const stock of stocks) {
+      try {
+        // 実際の分析データを取得してシグナル生成
+        const response = await fetch(`/api/stock/stocks/${stock.symbol}/analysis`);
+        if (response.ok) {
+          const analysisData = await response.json();
+          if (analysisData.technical_indicators) {
+            const signal: TradingSignal = {
+              type: analysisData.analysis.recommendation,
+              symbol: stock.symbol,
+              confidence: Math.round(analysisData.analysis.confidence * 100),
+              reason: analysisData.analysis.reasoning?.[0] || 'テクニカル分析に基づく判定',
+              strength: analysisData.advanced_trading?.market_environment?.strength || 75,
+              indicators: analysisData.technical_indicators
+            };
+            signals.push(signal);
+          }
+        }
+      } catch (error) {
+        console.error(`シグナル生成エラー (${stock.symbol}):`, error);
+      }
+    }
+    
+    setTradingSignals(signals);
+  };
 
   return (
     <div className="space-y-6">
@@ -103,20 +205,31 @@ export const Dashboard: React.FC<DashboardProps> = ({
           <p className="text-sm text-gray-500 dark:text-gray-400">
             最終更新: {lastUpdate ? lastUpdate.toLocaleTimeString('ja-JP') : '--:--:--'}
           </p>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            onClick={fetchMarketData}
-            disabled={isLoading}
-          >
-            <RefreshCw className={cn("w-4 h-4 mr-2", isLoading && "animate-spin")} />
-            更新
-          </Button>
+          <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1">
+              <div className={cn(
+                "w-2 h-2 rounded-full",
+                isLoading ? "bg-yellow-500 animate-pulse" : "bg-green-500 animate-pulse"
+              )}></div>
+              <span className="text-xs text-gray-500">
+                {isLoading ? '更新中' : 'ライブ'}
+              </span>
+            </div>
+            <Button 
+              variant="outline" 
+              size="sm" 
+              onClick={fetchMarketData}
+              disabled={isLoading}
+            >
+              <RefreshCw className={cn("w-4 h-4 mr-2", isLoading && "animate-spin")} />
+              更新
+            </Button>
+          </div>
         </div>
       </div>
 
       {/* 市場概況 */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {/* <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {marketData.map((item, index) => (
           <Card key={index}>
             <CardContent className="p-4">
@@ -152,13 +265,13 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 <span className="text-sm" style={{ 
                   color: item.change > 0 ? '#059669' : '#dc2626' 
                 }}>
-                  ({item.change > 0 ? '+' : ''}{item.changePercent.toFixed(2)}%)
+                  ({(item.change > 0 ? '+' : '') + item.changePercent.toFixed(2)}%)
                 </span>
               </div>
             </CardContent>
           </Card>
         ))}
-      </div>
+      </div> */}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* 選択された銘柄の詳細 */}
@@ -270,7 +383,7 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                {demoSignals.map((signal, index) => (
+                {tradingSignals.length > 0 ? tradingSignals.map((signal, index) => (
                   <div key={index} className="p-3 rounded-lg border">
                     <div className="flex items-center justify-between mb-2">
                       <Badge 
@@ -283,12 +396,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
                     <p className="text-sm text-gray-600 dark:text-gray-400 mb-2">
                       {signal.reason}
                     </p>
-                    <div className="flex items-center justify-between">
+                    <div className="flex items-center justify-between mb-2">
                       <span className="text-xs text-gray-500">信頼度</span>
                       <span className="text-sm font-medium">{signal.confidence}%</span>
                     </div>
+                    <div className="grid grid-cols-2 gap-1 text-xs text-gray-500 mt-1">
+                      <div>RSI: {signal.indicators.rsi.value} ({signal.indicators.rsi.signal})</div>
+                      <div>MACD: {signal.indicators.macd.signal}</div>
+                      <div>ボリンジャー: {signal.indicators.bollinger.position}</div>
+                      <div>強度: {signal.strength}%</div>
+                    </div>
                   </div>
-                ))}
+                )) : (
+                  <div className="p-3 text-center text-gray-500">
+                    {isLoading ? 'シグナル分析中...' : 'シグナルデータを読み込んでいます'}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>
@@ -303,22 +426,50 @@ export const Dashboard: React.FC<DashboardProps> = ({
             </CardHeader>
             <CardContent>
               <div className="space-y-3">
-                <div className="p-3 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg border border-yellow-200 dark:border-yellow-800">
-                  <p className="text-sm font-medium text-yellow-800 dark:text-yellow-200">
-                    VIX上昇中
-                  </p>
-                  <p className="text-xs text-yellow-700 dark:text-yellow-300 mt-1">
-                    市場のボラティリティが増加しています
-                  </p>
-                </div>
-                <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg border border-blue-200 dark:border-blue-800">
-                  <p className="text-sm font-medium text-blue-800 dark:text-blue-200">
-                    セクターローテーション
-                  </p>
-                  <p className="text-xs text-blue-700 dark:text-blue-300 mt-1">
-                    テクノロジー株から金融株への資金移動
-                  </p>
-                </div>
+                {marketAlerts.length > 0 ? marketAlerts.slice(0, 5).map((alert, index) => (
+                  <div 
+                    key={alert.id || index} 
+                    className={cn(
+                      "p-3 rounded-lg border",
+                      MarketAlertService.getAlertStyle(alert)
+                    )}
+                  >
+                    <div className="flex items-center justify-between mb-1">
+                      <p className={cn(
+                        "text-sm font-medium",
+                        MarketAlertService.getAlertTextStyle(alert)
+                      )}>
+                        {alert.title}
+                      </p>
+                      {alert.priority > 7 && (
+                        <Badge variant="destructive" className="text-xs">
+                          重要
+                        </Badge>
+                      )}
+                    </div>
+                    <p className={cn(
+                      "text-xs mt-1",
+                      MarketAlertService.getAlertDescriptionStyle(alert)
+                    )}>
+                      {alert.description}
+                    </p>
+                    <div className="flex items-center justify-between mt-2">
+                      <span className="text-xs text-gray-500">
+                        {alert.category} | 優先度: {alert.priority}
+                      </span>
+                      <span className="text-xs text-gray-400">
+                        {new Date(alert.timestamp).toLocaleTimeString('ja-JP', { 
+                          hour: '2-digit', 
+                          minute: '2-digit' 
+                        })}
+                      </span>
+                    </div>
+                  </div>
+                )) : (
+                  <div className="p-3 text-center text-gray-500">
+                    {isLoading ? 'アラート分析中...' : 'アラートデータを読み込んでいます'}
+                  </div>
+                )}
               </div>
             </CardContent>
           </Card>

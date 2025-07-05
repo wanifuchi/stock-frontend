@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { Search, Bell, User, Moon, Sun, Menu } from 'lucide-react';
+import { Search, Bell, Moon, Sun, Menu } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -115,7 +115,7 @@ export const Header: React.FC<HeaderProps> = ({
           </Button>
 
           {/* ユーザープロフィール */}
-          <Button variant="ghost" size="sm" className="hidden sm:flex items-center space-x-2">
+          {/* <Button variant="ghost" size="sm" className="hidden sm:flex items-center space-x-2">
             <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-white" />
             </div>
@@ -127,7 +127,7 @@ export const Header: React.FC<HeaderProps> = ({
                 プロアカウント
               </p>
             </div>
-          </Button>
+          </Button> */}
         </div>
       </div>
 

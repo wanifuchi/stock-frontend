@@ -160,7 +160,7 @@ export interface TopMover {
 export const stockAPI = {
   // 株式銘柄を検索
   searchStocks: async (query: string): Promise<{ query: string; results: StockSearchResult[] }> => {
-    const response = await apiClient.get('/stocks/search', {
+    const response = await apiClient.get('/search', {
       params: { query },
     });
     return response.data;

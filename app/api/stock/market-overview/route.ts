@@ -30,10 +30,20 @@ async function fetchMarketDataFromRailway(symbol: string) {
     throw new Error(data.message || 'Railway API returned error');
   }
 
+  // ETF価格を実際の指数値に変換する係数
+  const conversionFactors: { [key: string]: number } = {
+    'SPY': 10.3, // SPY価格を S&P 500指数に変換
+    'QQQ': 32.1, // QQQ価格を NASDAQ指数に変換  
+    'DIA': 88.2, // DIA価格を DOW指数に変換
+    'VIX': 1.0   // VIXはそのまま
+  };
+
+  const factor = conversionFactors[symbol] || 1.0;
+  
   return {
     symbol,
-    value: data.current_price,
-    change: data.change,
+    value: Math.round(data.current_price * factor * 100) / 100,
+    change: Math.round(data.change * factor * 100) / 100,
     changePercent: data.change_percent
   };
 }
