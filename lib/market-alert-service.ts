@@ -233,7 +233,7 @@ export class MarketAlertService {
             description: `${sector.sector}セクターが${Math.abs(sector.change_1d).toFixed(1)}%${direction}しています。`,
             timestamp: new Date().toISOString(),
             priority: Math.abs(sector.change_1d) > 5 ? 7 : 4,
-            data: sector as Record<string, unknown>
+            data: sector as unknown as Record<string, unknown>
           });
         }
       });
