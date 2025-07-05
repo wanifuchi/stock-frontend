@@ -156,7 +156,7 @@ export interface StockAnalysis {
 export const stockAPI = {
   // 株式銘柄を検索
   searchStocks: async (query: string): Promise<{ query: string; results: StockSearchResult[] }> => {
-    const response = await apiClient.get('/api/stocks/search', {
+    const response = await apiClient.get('/stocks/search', {
       params: { query },
     });
     return response.data;
@@ -164,13 +164,13 @@ export const stockAPI = {
 
   // 株式情報を取得
   getStockInfo: async (symbol: string): Promise<StockInfo> => {
-    const response = await apiClient.get(`/api/stocks/${symbol}`);
+    const response = await apiClient.get(`/stocks/${symbol}`);
     return response.data;
   },
 
   // 価格履歴を取得
   getPriceHistory: async (symbol: string, period: string = '1mo'): Promise<StockPriceHistory> => {
-    const response = await apiClient.get(`/api/stocks/${symbol}/history`, {
+    const response = await apiClient.get(`/stocks/${symbol}/history`, {
       params: { period },
     });
     return response.data;
@@ -178,19 +178,19 @@ export const stockAPI = {
 
   // テクニカル指標を取得
   getTechnicalIndicators: async (symbol: string): Promise<TechnicalIndicators> => {
-    const response = await apiClient.get(`/api/stocks/${symbol}/indicators`);
+    const response = await apiClient.get(`/stocks/${symbol}/indicators`);
     return response.data;
   },
 
   // 株式分析を取得
   getStockAnalysis: async (symbol: string): Promise<StockAnalysis> => {
-    const response = await apiClient.get(`/api/stocks/${symbol}/analysis`);
+    const response = await apiClient.get(`/stocks/${symbol}/analysis`);
     return response.data;
   },
 
   // ヘルスチェック
   checkHealth: async (): Promise<{ status: string; timestamp: string; service: string }> => {
-    const response = await apiClient.get('/api/health');
+    const response = await apiClient.get('/health');
     return response.data;
   },
 };
