@@ -40,7 +40,7 @@ async function handleRequest(
     if (method === 'POST' || method === 'PUT') {
       try {
         body = await request.json();
-      } catch (error) {
+      } catch {
         // リクエストボディが空の場合はnullのまま
       }
     }
