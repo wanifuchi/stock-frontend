@@ -31,7 +31,12 @@ export const Dashboard: React.FC<DashboardProps> = ({
   analysisData
 }) => {
   const [lastUpdate, setLastUpdate] = useState<Date | null>(null);
-  const [marketData, setMarketData] = useState<MarketData[]>([]);
+  const [marketData, setMarketData] = useState<MarketData[]>([
+    { symbol: 'S&P 500', value: 0, change: 0, changePercent: 0 },
+    { symbol: 'NASDAQ', value: 0, change: 0, changePercent: 0 },
+    { symbol: 'DOW', value: 0, change: 0, changePercent: 0 },
+    { symbol: 'VIX', value: 0, change: 0, changePercent: 0 }
+  ]);
   const [topMovers, setTopMovers] = useState<TopMover[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -50,16 +55,16 @@ export const Dashboard: React.FC<DashboardProps> = ({
       console.error('市場データ取得エラー:', error);
       // エラー時はデモデータを使用
       setMarketData([
-        { symbol: 'S&P 500', value: 4856.23, change: 23.45, changePercent: 0.48 },
-        { symbol: 'NASDAQ', value: 15234.67, change: 89.12, changePercent: 0.59 },
-        { symbol: 'DOW', value: 37543.89, change: -45.67, changePercent: -0.12 },
-        { symbol: 'VIX', value: 12.34, change: -0.87, changePercent: -6.58 }
+        { symbol: 'S&P 500', value: 5547.25, change: 12.45, changePercent: 0.23 },
+        { symbol: 'NASDAQ', value: 17833.45, change: -23.12, changePercent: -0.13 },
+        { symbol: 'DOW', value: 39308.00, change: 34.67, changePercent: 0.09 },
+        { symbol: 'VIX', value: 12.45, change: -0.87, changePercent: -6.53 }
       ]);
       setTopMovers([
-        { symbol: 'NVDA', name: 'NVIDIA Corporation', price: 875.43, change: 34.56, changePercent: 4.12 },
-        { symbol: 'TSLA', name: 'Tesla Inc', price: 267.89, change: 12.34, changePercent: 4.84 },
-        { symbol: 'AAPL', name: 'Apple Inc', price: 182.34, change: -2.45, changePercent: -1.33 },
-        { symbol: 'META', name: 'Meta Platforms', price: 423.67, change: 8.90, changePercent: 2.14 }
+        { symbol: 'NVDA', name: 'NVIDIA Corporation', price: 138.95, change: 2.45, changePercent: 1.79 },
+        { symbol: 'TSLA', name: 'Tesla Inc', price: 271.99, change: -3.21, changePercent: -1.17 },
+        { symbol: 'AAPL', name: 'Apple Inc', price: 227.52, change: -1.23, changePercent: -0.54 },
+        { symbol: 'META', name: 'Meta Platforms Inc', price: 568.73, change: 8.45, changePercent: 1.51 }
       ]);
     } finally {
       setIsLoading(false);
@@ -120,8 +125,8 @@ export const Dashboard: React.FC<DashboardProps> = ({
                   <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
                     {item.symbol}
                   </p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-white">
-                    {item.value.toLocaleString()}
+                  <p className="text-2xl font-bold text-foreground" style={{ color: '#1f2937' }}>
+                    {isLoading && item.value === 0 ? 'Loading...' : item.value.toLocaleString()}
                   </p>
                 </div>
                 <div className={cn(
@@ -139,11 +144,15 @@ export const Dashboard: React.FC<DashboardProps> = ({
                 "flex items-center space-x-2 mt-2",
                 item.change > 0 ? "text-green-600" : "text-red-600"
               )}>
-                <span className="text-sm font-medium">
-                  {item.change > 0 ? '+' : ''}{item.change}
+                <span className="text-sm font-medium" style={{ 
+                  color: item.change > 0 ? '#059669' : '#dc2626' 
+                }}>
+                  {item.change > 0 ? '+' : ''}{item.change.toFixed(2)}
                 </span>
-                <span className="text-sm">
-                  ({item.change > 0 ? '+' : ''}{item.changePercent}%)
+                <span className="text-sm" style={{ 
+                  color: item.change > 0 ? '#059669' : '#dc2626' 
+                }}>
+                  ({item.change > 0 ? '+' : ''}{item.changePercent.toFixed(2)}%)
                 </span>
               </div>
             </CardContent>
@@ -224,19 +233,22 @@ export const Dashboard: React.FC<DashboardProps> = ({
                         <span className="text-sm font-bold text-blue-600">{stock.symbol.charAt(0)}</span>
                       </div>
                       <div>
-                        <p className="font-medium text-gray-900 dark:text-white">{stock.symbol}</p>
-                        <p className="text-sm text-gray-600 dark:text-gray-400 truncate max-w-32">
+                        <p className="font-medium text-foreground" style={{ color: '#1f2937' }}>
+                          {stock.symbol}
+                        </p>
+                        <p className="text-sm text-muted-foreground" style={{ color: '#6b7280' }}>
                           {stock.name}
                         </p>
                       </div>
                     </div>
                     <div className="text-right">
-                      <p className="font-semibold text-gray-900 dark:text-white">${stock.price}</p>
-                      <p className={cn(
-                        "text-sm font-medium",
-                        stock.change > 0 ? "text-green-600" : "text-red-600"
-                      )}>
-                        {stock.change > 0 ? '+' : ''}{stock.changePercent}%
+                      <p className="font-semibold text-foreground" style={{ color: '#1f2937' }}>
+                        ${stock.price.toFixed(2)}
+                      </p>
+                      <p className="text-sm font-medium" style={{ 
+                        color: stock.changePercent > 0 ? '#059669' : '#dc2626' 
+                      }}>
+                        {stock.changePercent > 0 ? '+' : ''}{stock.changePercent.toFixed(2)}%
                       </p>
                     </div>
                   </div>

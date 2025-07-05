@@ -181,14 +181,14 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock, classNa
                     <div className="flex items-center justify-between">
                       <div className="flex flex-col">
                         <div className="flex items-center space-x-2">
-                          <span className="font-semibold text-sm tracking-wide">
+                          <span className="font-semibold text-sm tracking-wide" style={{ color: 'hsl(var(--color-foreground))' }}>
                             {result.symbol}
                           </span>
                           <Badge variant="outline" className="h-5 text-xs">
                             {result.exchange}
                           </Badge>
                         </div>
-                        <span className="text-sm text-muted-foreground truncate max-w-xs">
+                        <span className="text-sm text-muted-foreground truncate max-w-xs" style={{ color: 'hsl(var(--color-muted-foreground))' }}>
                           {result.name}
                         </span>
                       </div>
@@ -201,8 +201,8 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock, classNa
                 <div className="px-4 py-6 text-center">
                   <div className="text-muted-foreground">
                     <Search className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                    <p className="text-sm">該当する銘柄が見つかりません</p>
-                    <p className="text-xs mt-1">別のキーワードで検索してください</p>
+                    <p className="text-sm" style={{ color: 'hsl(var(--color-muted-foreground))' }}>該当する銘柄が見つかりません</p>
+                    <p className="text-xs mt-1" style={{ color: 'hsl(var(--color-muted-foreground))' }}>別のキーワードで検索してください</p>
                   </div>
                 </div>
               )
@@ -217,7 +217,7 @@ export const StockSearch: React.FC<StockSearchProps> = ({ onSelectStock, classNa
           <CardContent className="p-6">
             <div className="flex items-center justify-center space-x-3">
               <Loader2 className="h-4 w-4 animate-spin text-primary" />
-              <span className="text-sm text-muted-foreground">検索中...</span>
+              <span className="text-sm text-muted-foreground" style={{ color: 'hsl(var(--color-muted-foreground))' }}>検索中...</span>
             </div>
           </CardContent>
         </Card>

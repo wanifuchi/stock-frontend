@@ -4,9 +4,8 @@
 import axios from 'axios';
 
 const getApiBaseUrl = () => {
-  // 常にプロキシを使用（クライアント・サーバーサイド共通）
-  // Vercelのサーバーレス環境では外部APIに直接アクセスできない場合があるため
-  return '/api/proxy';
+  // 新しいストック専用APIエンドポイントを使用
+  return '/api/stock';
 };
 
 const API_BASE_URL = getApiBaseUrl();
@@ -202,34 +201,8 @@ export const stockAPI = {
   // 市場概況データを取得（主要指数）
   getMarketOverview: async (): Promise<MarketData[]> => {
     try {
-      // 主要指数のリアルタイムデータを取得
-      const symbols = ['^GSPC', '^IXIC', '^DJI', '^VIX']; // S&P500, NASDAQ, DOW, VIX
-      const results = await Promise.all(
-        symbols.map(async (symbol) => {
-          try {
-            const data = await apiClient.get(`/stocks/${symbol}`);
-            return {
-              symbol: symbol === '^GSPC' ? 'S&P 500' : 
-                     symbol === '^IXIC' ? 'NASDAQ' :
-                     symbol === '^DJI' ? 'DOW' : 'VIX',
-              value: data.data.current_price,
-              change: data.data.change,
-              changePercent: data.data.change_percent
-            };
-          } catch (error) {
-            // 個別の銘柄でエラーが発生した場合はデフォルト値を返す
-            return {
-              symbol: symbol === '^GSPC' ? 'S&P 500' : 
-                     symbol === '^IXIC' ? 'NASDAQ' :
-                     symbol === '^DJI' ? 'DOW' : 'VIX',
-              value: 0,
-              change: 0,
-              changePercent: 0
-            };
-          }
-        })
-      );
-      return results;
+      const response = await apiClient.get('/market-overview');
+      return response.data;
     } catch (error) {
       console.error('市場概況データ取得エラー:', error);
       // フォールバック用のデモデータ
@@ -245,29 +218,8 @@ export const stockAPI = {
   // 注目銘柄（トップムーバー）を取得
   getTopMovers: async (): Promise<TopMover[]> => {
     try {
-      // 主要銘柄のデータを取得
-      const symbols = ['NVDA', 'TSLA', 'AAPL', 'META', 'GOOGL', 'MSFT'];
-      const results = await Promise.all(
-        symbols.map(async (symbol) => {
-          try {
-            const data = await apiClient.get(`/stocks/${symbol}`);
-            return {
-              symbol: data.data.symbol,
-              name: data.data.name,
-              price: data.data.current_price,
-              change: data.data.change,
-              changePercent: data.data.change_percent
-            };
-          } catch (error) {
-            return null;
-          }
-        })
-      );
-      // nullを除外してソート（変動率の絶対値で降順）
-      return results
-        .filter((item): item is TopMover => item !== null)
-        .sort((a, b) => Math.abs(b.changePercent) - Math.abs(a.changePercent))
-        .slice(0, 4); // 上位4つ
+      const response = await apiClient.get('/top-movers');
+      return response.data;
     } catch (error) {
       console.error('注目銘柄データ取得エラー:', error);
       // フォールバック用のデモデータ

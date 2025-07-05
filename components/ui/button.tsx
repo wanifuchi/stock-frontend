@@ -41,11 +41,31 @@ export interface ButtonProps
 }
 
 const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant, size, asChild = false, ...props }, ref) => {
+  ({ className, variant, size, asChild = false, style, ...props }, ref) => {
     const Comp = asChild ? Slot : "button"
+    
+    // 各バリアントに対応するテキストカラーを定義
+    const getTextColor = () => {
+      switch (variant) {
+        case 'outline':
+          return 'hsl(var(--color-foreground))';
+        case 'destructive':
+          return 'hsl(var(--color-destructive-foreground))';
+        case 'secondary':
+          return 'hsl(var(--color-secondary-foreground))';
+        case 'ghost':
+          return 'hsl(var(--color-foreground))';
+        case 'link':
+          return 'hsl(var(--color-primary))';
+        default:
+          return 'hsl(var(--color-primary-foreground))';
+      }
+    };
+    
     return (
       <Comp
         className={cn(buttonVariants({ variant, size, className }))}
+        style={{ color: getTextColor(), ...style }}
         ref={ref}
         {...props}
       />
